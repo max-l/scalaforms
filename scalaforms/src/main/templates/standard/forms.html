@@ -1,0 +1,50 @@
+<!-- template formStart -->
+
+<form>12345<!-- commentaire -->12345
+
+<!-- template formStartWithLabel($label) -->
+
+<h3>$label</h3>
+<form>
+
+<!-- template formEnd -->
+
+</form>
+
+<!-- template fieldSetStart -->
+
+<fieldset>
+
+<!-- template fieldSetStartWithLabel($label) -->
+
+<fieldset><legend>$label:raw</legend>
+
+<!-- template beforeFields -->
+
+<table>
+
+<!-- template fieldSpacer -->
+
+<td>&nbsp;&nbsp;</td>
+
+<!-- template fieldLabel($label) -->
+
+<label>$label</label>
+
+<!-- template fieldLabelFor($label, $inputFieldId) -->
+
+<label for="$inputFieldId">$label</label>
+
+<!-- template field($f, $spacer) -->
+
+<tr><td>$f:fieldLabel</td>$spacer:raw<td>$f:fieldControl</td></tr>
+
+<!-- template afterFields -->
+
+</table>
+
+<!-- template fieldSetEnd -->
+
+</fieldset>
+
+<!-- templateEnd  -->

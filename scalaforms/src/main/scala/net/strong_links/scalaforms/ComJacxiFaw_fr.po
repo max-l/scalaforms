@@ -1,0 +1,106 @@
+
+#. PO file header.
+msgid ""
+msgstr ""
+"Project-Id-Version: net.strong_links.scalaforms\n"
+"PO-Revision-Date: YYYY-MM-DD HH:MI+ZONE\n"
+"Language: fr\n"
+"Language-Team: fr <email@address>\n"
+"Last-Translator: Full Name <email@address>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n <= 1) ? 0 : 1\n"
+""
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:39
+msgid "Creation transaction id"
+msgstr "Id de la transaction de création"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:50
+msgid "Database key"
+msgstr "Clé de base de données"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:60
+msgid "End date/time"
+msgstr "Date/heure de fin"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:68
+msgid "Failed login attempts"
+msgstr "Nombre d'essais de connexion ayant échoué"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:45
+msgid "Failure"
+msgstr "Échec"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:19
+msgid "First name"
+msgstr "Prénom"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:84
+msgid "Fully qualified name"
+msgstr "Nom pleinement qualifié"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:76
+msgid "Http session id"
+msgstr "Id de session Http"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:43
+msgid "In Progress"
+msgstr "En cours"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:92
+msgid "Interaction arguments"
+msgstr "Arguments de l'interaction"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:88
+msgid "Interaction fully qualified name"
+msgstr "Nom complet de l'interaction"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:23
+msgid "Last name"
+msgstr "Nom de famille"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:35
+msgid "Last update transaction id"
+msgstr "Id de la transaction de modification"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:11
+msgid "Name"
+msgstr "Nom"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:27
+msgid "Password"
+msgstr "Mot de passe"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:72
+msgid "Preferred language"
+msgstr "Langue préférée"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:31
+msgid "Stack dump"
+msgstr "Vidange de la trace"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:56
+msgid "Start date/time"
+msgstr "Date/heure de début"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:64
+msgid "Status"
+msgstr "Statut"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:44
+msgid "Success"
+msgstr "Succès"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:46
+msgid "Timeout"
+msgstr "Délai expiré"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:15
+msgid "Username"
+msgstr "Code d'utilisateur"
+
+#: V:\faw1\.\faw\src\main\scala\com\jacxi\faw\domains\Domains.scala:80
+msgid "uuid"
+msgstr "uuid"

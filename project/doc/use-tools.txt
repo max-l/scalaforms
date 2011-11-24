@@ -1,0 +1,9 @@
+Sortir de sbt011
+
+Entrer dans sbt011 de nouveau
+
+Commandes:
+
+gen-i18n
+gen-templates
+

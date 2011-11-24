@@ -1,0 +1,42 @@
+<!-- template plus($now, $a, $b, $sum, $hello, $user, $data) -->
+<p />
+<h3>Ceci est généré avec un template le $now</h3>
+<p /> 
+$a + $b = $sum
+<p />
+$hello
+<p />
+$user.firstName: fieldLabel
+<p />
+$user.firstName: fieldControl
+<p />
+$user.lastName: field
+<p />
+XML: $data.xml: xml
+<p />
+String: $data.string
+<p />
+String raw: $data.string : raw
+<p />
+String javascript: 
+<script>
+var s = $data.string:js;
+document.write('Javascript output: ' + s);
+</script>
+<p />
+
+<font face="Courier">
+Formes proposées :
+<ol>
+<li>$object.member -- Normal expanded html string [base type String]
+<li>$object.member:js -- Javascript string with quotes [base type String]
+<li>$object.member:raw -- String "as is" [base type String]
+<li>$object.member:xml -- XML "as is" [base type XML]
+<li>$object.member:field -- Complete raw field [base type Field, augmented to FieldForm]
+<li>$object.member:fieldLabel -- Field label raw string [base type Field, augmented to FieldForm]
+<li>$object.member:fieldControl -- Field control raw string [base type Field, augmented to FieldForm]
+<li>$object.member:fieldHelp -- Field help raw string [base type Field, augmented to FieldForm]
+<li>$object.member:fieldError -- Field error raw string [base type Field, augmented to FieldForm]
+</ol>
+</font>
+

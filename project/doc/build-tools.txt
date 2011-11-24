@@ -1,0 +1,10 @@
+Dans sbt011
+
+project i18ngen
+clean
+publish-local
+
+project templcomp
+clean
+publish-local
+

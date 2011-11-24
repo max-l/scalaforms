@@ -1,0 +1,11 @@
+.project
+.classpath
+.target
+.cache
+.scala_dependencies
+target/*
+scalaforms/target/*
+project/target/*
+project/plugins/project/target/*
+project/plugins/target/*
+

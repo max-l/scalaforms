@@ -1,0 +1,46 @@
+﻿
+To Do
+=====
+
+- Crash lors du log dans la BD si arguments trop long.
+
+'Exception while executing statement : Value too long for column "INTERACTIONARGS VARCHAR(128) NOT NULL": "'Erreur%20g%C3%A9n%C3%A9r%C3%A9e%20en%20UTF-8%20contenant%20des%20caract%C3%A8res%20bizarres%20tels%20que%20%0A%2C%20%22%2C%20%2... (169)"; SQL statement:
+insert into Transaction (startTime, stackDump, interactionFqn, endTime, status, authenticationId, interactionArgs) values (?,?,?,?,?,?,?) [22001-160]
+errorCode: 22001, sqlState: 22001
+insert into Transaction (startTime, stackDump, interactionFqn, endTime, status, authenticationId, interactionArgs) values (?,?,?,?,?,?,?)'
+
+La longueur maximale devrait être 1000 et non 128. Si la valeur reçue a plus de 1000 caractères, la tronquer à 1000 caractères car il n'est pas acceptable de planter dans ce contexte.
+
+- Templates
+
+Erreur si un paramètre n'est pas utilisé, car c'est la première utilisation d'un paramètre qui détermine son type, et quand
+il n'est pas utilisé, ça génère une erreur "key not found".
+
+- Méthodes de InteractionContext
+
+Ces dernières font des commits, alors que le seul endroit où un commit devrait être fait est dans le module Server (il y a des inTransaction invalides).
+
+- Premier accès au serveur avec http://localhost:8080/int/com.jacxi.fawtests.Poutine/plus/2/3 donne :
+
+HTTP ERROR: 500
+
+Problem accessing /int/com.jacxi.fawtests.Poutine/plus/2/3;jsessionid=localhost_8080ejvbid3hxd6i12lod4zmymin3.localhost_8080. Reason:
+
+For input string: "3;jsessionid=localhost_8080ejvbid3hxd6i12lod4zmymin3.localhost_8080"
+
+Si on recommence, ça fonctionne.
+
+- PrintWriter
+
+Toutes les méthodes de PrintWriter ne génèrent pas d'exception en cas d'erreur. Il faut appeler manuellement la méthode checkError() après chaque appel de méthode pour véréfier si tout va bien. On ne peut donc pas écrire tout notre code avec des print et println dans un PrintWriter car ce n'est pas sécuritaire. On devra donc avoir une classe plus intelligente pour wrapper PrintWriter.
+
+Une fois que cela est fait, s'assurer que cette classe est utilisée partout où on emploie PrintWriter présentement, notamment dans CharStream.
+
+- Erreurs fatales
+
+Traitement unifié à implanter pour les trois types de requêtes au serveur: interactions, Comet et ressources :
+
+- log des erreurs dans la BD ?
+- présentation d'une page standard "OOps" à l'utilisateur, avec numéro de référence (pour interactions, c'est le numéro de la transaction, dans les autres cas, à déterminer)
+
+Si un stream est déjà en création, il faudra généré du HTML pour rediriger l'utilisateur à une page (via 'document.location = xxx') d'erreur. On ne peut générer directement la page d'erreur dans le cadre de la transaction courante puisqu'il y aura déjà de la junk qui aura été envoyée au navigateur, et que cette dernière doit disparaître avant de faire afficher le contenu de la page d'erreur. À moins qu'il y ait moyen de faire ça en javascript, genre faire un reset du dom, mais j'en doute, car ça ferait aussi disparaître le javascript en train d'exécuter...
