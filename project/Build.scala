@@ -33,19 +33,21 @@ object Buildz extends Build {
     )
   )
    
-  import net.strong_links.i18ngen._
-  import net.strong_links.templcomp._
+  import net.strong_links.epoxy.Epoxy
+
   
   lazy val scalaforms = Project(
     id = "scalaforms",
     base = file("scalaforms"),    
     settings = buildSettings ++ Seq(
-    I18nGen(
+/*    I18nGen(
       new I18nCatalog("net.strong_links.scalaforms", "./scalaforms/src/main/scala", "fr"),
       new I18nCatalog("net.strong_links.scalaforms", "./scalaforms/src/main/scala", "fr", "CA"),
       new I18nCatalog("net.strong_links.scalaforms", "./scalaforms/src/main/scala", "en", "UK")
     ),
-    TemplComp("./scalaforms/src/main/templates"),
+*/    
+    //TemplComp("./scalaforms/src/main/templates"),
+    Epoxy.epoxyTemplateRoots <<= sourceDirectory.map(src =>  Seq(src/ "main/templates")),
 	  libraryDependencies  ++= Seq(        
 	    core,
 		bcel,
@@ -60,7 +62,7 @@ object Buildz extends Build {
         "ch.qos.logback" % "logback-classic" % "1.0.0",
         squeryl
       )	    
-    )
+    ) ++ Epoxy.init
   )
  
 }

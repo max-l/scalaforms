@@ -33,12 +33,12 @@ object ClassPermissions extends dumpable {
   private [scalaforms] val m = new IdentityMap[InteractionsEnabler[_], ClassPermission] 
   
   def dump(cs: LeveledCharStream) {
-    cs.levelPrint("Class permissions loaded")
+    cs.println("Class permissions loaded")
     cs.increaseLevel
     m.getValues.sortWith(_.name < _.name).foreach(c => {
-      cs.levelPrint(c.name)
+      cs.println(c.name)
       cs.increaseLevel
-      c.includedMethods.sortWith(_.getName < _.getName).foreach(m => cs.levelPrint(m.getName))
+      c.includedMethods.sortWith(_.getName < _.getName).foreach(m => cs.println(m.getName))
       cs.decreaseLevel
     })
     cs.decreaseLevel
@@ -57,9 +57,9 @@ object MethodPermissions extends dumpable {
   private [scalaforms] val m = new IdentityMap[Method, MethodPermission] 
   
   def dump(cs: LeveledCharStream) {
-    cs.levelPrint("Method permissions loaded")
+    cs.println("Method permissions loaded")
     cs.increaseLevel
-    m.getValues.sortWith(_.name < _.name).foreach(mp => cs.levelPrint(mp.name))
+    m.getValues.sortWith(_.name < _.name).foreach(mp => cs.println(mp.name))
     cs.decreaseLevel
   }
 }
@@ -84,9 +84,9 @@ object GeneralPermissions extends dumpable {
   private [scalaforms] val list = scala.collection.mutable.ListBuffer[GeneralPermission]() 
 
   def dump(cs: LeveledCharStream) {
-    cs.levelPrint("General permissions loaded")
+    cs.println("General permissions loaded")
     cs.increaseLevel
-    list.sortWith(_.description < _.description).foreach(c => cs.levelPrint(c.description))
+    list.sortWith(_.description < _.description).foreach(c => cs.println(c.description))
     cs.decreaseLevel
   }
 }
@@ -145,9 +145,9 @@ trait Role extends dumpable with FullyQualifiedName {
   }
 
   def dump(cs: LeveledCharStream) {
-    cs.levelPrint("Permissions for role _" <<< name.msgid)
+    cs.println("Permissions for role _" <<< name.msgid)
     def dumpList(list: List[Permission]) {
-      list.sortWith(_.description < _.description).foreach(p => cs.levelPrint(p.description))      
+      list.sortWith(_.description < _.description).foreach(p => cs.println(p.description))      
     }
     cs.increaseLevel
     dumpList(classPermissions)
@@ -174,7 +174,7 @@ class RoleSet(val roles: Seq[Role])  extends dumpable {
   def allows(gp: GeneralPermission) = roles.exists(_.allows(gp))  
   
   def dump(cs: LeveledCharStream) {
-    cs.levelPrint("Role set")
+    cs.println("Role set")
     cs.increaseLevel
     roles.sortWith(_.name.msgid < _.name.msgid).foreach(_.dump(cs))
     cs.decreaseLevel
