@@ -29,8 +29,8 @@ class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] wi
   private [ui] def inputName = "f" + _tabOrder
   private [ui] def inputId = inputName
 
-  protected def error(params: ErrorParameter*) = {
-    Errors.fatal(Seq(toString : ErrorParameter) ++ params.toSeq: _*)
+  protected def error(params: LoggingParameter*) = {
+    Errors.fatal(Seq(toString : LoggingParameter) ++ params.toSeq: _*)
   }
 
   override def toString = {

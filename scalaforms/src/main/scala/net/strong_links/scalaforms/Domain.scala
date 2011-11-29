@@ -67,8 +67,8 @@ trait Domain[A] {
     "Domain _" <<< label.msgid
   }
 
-  protected def error(params: ErrorParameter*) = {
-    Errors.fatal(Seq(toString : ErrorParameter) ++ params.toSeq: _*)
+  protected def error(params: LoggingParameter*) = {
+    Errors.fatal(Seq(toString : LoggingParameter) ++ params.toSeq: _*)
   }
 }
 
