@@ -2,9 +2,10 @@ package net.strong_links.scalaforms.ui
 
 import net.strong_links.core._
 import net.strong_links.scalaforms._
+import net.strong_links.scalaforms.templates._
 
 object FormField {
-  val fieldSpacer = capture(standard.Forms.fieldSpacer(_))  
+  val fieldSpacer = capture(standard.forms.fieldSpacer(_))  
 }
 
 class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] with FieldRendering {
@@ -97,14 +98,14 @@ class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] wi
   }
 
   protected def defaultRenderer(os: OutStream) {
-    standard.Forms.field(field, fieldSpacer)(os)
+    standard.forms.field(field, fieldSpacer)(os)
   }
   
   def renderLabel(os: OutStream) {
     _label match {
       case None =>
       case Some(label) => 
-        standard.Forms.fieldLabelFor(label, inputId)(os)
+        standard.forms.fieldLabelFor(label, inputId)(os)
     }
   }
   

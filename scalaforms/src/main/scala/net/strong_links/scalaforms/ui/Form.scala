@@ -2,7 +2,7 @@ package net.strong_links.scalaforms.ui
 
 import net.strong_links.core._
 import net.strong_links.scalaforms._
-import net.strong_links.scalaforms.templates.standard
+import net.strong_links.scalaforms.templates._
 
 class Form(val formFieldSets: FormFieldSet*) extends DisplayAttributes[Form] with FieldTransformer {
 
@@ -25,12 +25,12 @@ class Form(val formFieldSets: FormFieldSet*) extends DisplayAttributes[Form] wit
   def defaultRenderer(os: OutStream) {
     _label match {
       case None =>
-        standard.Forms.formStart(os)
+        standard.forms.formStart(os)
       case Some(label) =>
-        standard.Forms.formStartWithLabel(label)(os)
+        standard.forms.formStartWithLabel(label)(os)
     }
     formFieldSets.foreach(_.render(os))
-    standard.Forms.formEnd(os)
+    standard.forms.formEnd(os)
   }
   
   override def render(os: OutStream) {

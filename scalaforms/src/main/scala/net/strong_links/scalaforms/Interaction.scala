@@ -2,6 +2,7 @@ package net.strong_links.scalaforms
 
 import net.strong_links.core._
 import net.strong_links.scalaforms.ui._
+import net.strong_links.scalaforms.templates._
 
 trait BaseInteraction {
   private var _os: OutStream = null
@@ -40,13 +41,13 @@ trait RawInteraction extends Interaction {
   override def preAction {
     val parameterToReplace = "$parameterToReplace"
     val uri = SystemInteractions.uriFor(_.reportJavaScriptError(parameterToReplace))
-    standard.Page.start(uri, parameterToReplace)(os)
+    standard.page.start(uri, parameterToReplace)(os)
     os.write("<h1>Start</h1>")    
   }
   
   override def postAction {
     os.write("<h1>End</h1>")    
-    standard.Page.end(os)
+    standard.page.end(os)
   }
 }
 
