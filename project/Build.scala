@@ -35,7 +35,7 @@ object Buildz extends Build {
    
   import net.strong_links.epoxy.Epoxy
 
-  
+
   lazy val scalaforms = Project(
     id = "scalaforms",
     base = file("scalaforms"),    
@@ -46,11 +46,11 @@ object Buildz extends Build {
       new I18nCatalog("net.strong_links.scalaforms", "./scalaforms/src/main/scala", "en", "UK")
     ),
 */    
-    //TemplComp("./scalaforms/src/main/templates"),
     Epoxy.epoxyTemplateRoots <<= sourceDirectory.map(src =>  Seq(src/ "main/templates")),
+    Epoxy.epoxyResourceRoots <<= sourceDirectory.map(src =>  Nil: Seq[File]),
 	  libraryDependencies  ++= Seq(        
-	    core,
-		bcel,
+	      core,
+	      bcel,
         "net.databinder" %% "unfiltered-filter" % "0.5.1",
         "net.databinder" %% "unfiltered-jetty" % "0.5.1",       
         "org.eclipse.jetty" % "jetty-webapp" % jettyVersion,
