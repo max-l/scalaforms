@@ -39,7 +39,7 @@ object Buildz extends Build {
   lazy val scalaforms = Project(
     id = "scalaforms",
     base = file("scalaforms"),    
-    settings = buildSettings ++ Seq(
+    settings = buildSettings ++ Epoxy.init ++ Seq(
 /*    I18nGen(
       new I18nCatalog("net.strong_links.scalaforms", "./scalaforms/src/main/scala", "fr"),
       new I18nCatalog("net.strong_links.scalaforms", "./scalaforms/src/main/scala", "fr", "CA"),
@@ -47,8 +47,8 @@ object Buildz extends Build {
     ),
 */    
     Epoxy.epoxyTemplateRoots <<= sourceDirectory.map(src =>  Seq(src/ "main/templates")),
-    Epoxy.epoxyResourceRoots <<= sourceDirectory.map(src =>  Nil: Seq[File]),
-	  libraryDependencies  ++= Seq(        
+    //Epoxy.epoxyResourceRoots <<= sourceDirectory.map(src =>  Nil: Seq[File]),
+	  libraryDependencies  ++=  Seq(        
 	      core,
 	      bcel,
         "net.databinder" %% "unfiltered-filter" % "0.5.1",
@@ -62,7 +62,7 @@ object Buildz extends Build {
         "ch.qos.logback" % "logback-classic" % "1.0.0",
         squeryl
       )	    
-    ) ++ Epoxy.init
+    )
   )
  
 }
