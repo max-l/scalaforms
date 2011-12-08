@@ -49,7 +49,7 @@ object Buildz extends Build {
     ),
 */    
     Epoxy.epoxyTemplateRoots <<= sourceDirectory.map(src =>  Seq(src/ "main/templates")),
-    //Epoxy.epoxyResourceRoots <<= sourceDirectory.map(src =>  Nil: Seq[File]),
+    Epoxy.epoxyResourceRoots <<= sourceDirectory.map(src =>  Nil: Seq[File]),
 	  libraryDependencies  ++=  Seq(        
 	      core,
 	      bcel,
