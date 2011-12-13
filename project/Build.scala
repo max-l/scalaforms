@@ -16,8 +16,9 @@ object Buildz extends Build {
     organization := "net.strong_links",
     version := "0.2",
     scalaVersion := versionOfScala,
-    resolvers += ScalaToolsSnapshots,
-    logLevel := Level.Warn
+    logLevel in Global := Level.Warn,
+    publishArtifact in packageDoc := false,    
+    resolvers += ScalaToolsSnapshots
   )
 
   lazy val root = Project(
