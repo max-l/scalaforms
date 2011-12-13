@@ -7,15 +7,15 @@ import java.lang.reflect.Method
 object Uri {
   def apply(method: Method, args: Array[Object]): String = {
     val hasIc = interactionContext.isDefined
-    val className = { 
-      val cn = method.getDeclaringClass.getCanonicalName; 
+    val className = {
+      val cn = method.getDeclaringClass.getCanonicalName;
       if (cn.endsWith("$")) cn.substring(0, cn.length - 1) else cn
     }
     if (!applicationWebroot.startsWith("/"))
       Errors.fatal("Constant applicationWebroot does not start with a /.")
     val x = List(applicationWebroot, className, method.getName).mkString("/")
     (if (args.length == 0) x else x + "/" + args.toList.mkString("/")) +
-    (if (hasIc) "?authId=" + interactionContext.get.authId else "")
+      (if (hasIc) "?authId=" + interactionContext.get.authId else "")
   }
 }
 
@@ -25,13 +25,13 @@ object UriExtracter {
 
 class UriExtracter(val uri: String) {
   def splitUri(path: String): (String, String, String, Array[String]) = {
-    val segments = path.split("/").filter(!_.isEmpty)
+    val segments = Util.split(path, "/").filter(!_.isEmpty)
     if (segments.length < 3)
       Errors.fatal("Invalid uri _." << uri)
     val webRootPath = segments(0)
     val className = segments(1)
     val methodName = segments(2)
-    val args = segments.drop(3)
+    val args = segments.drop(3).toArray
     (webRootPath, className, methodName, args)
   }
   def createTypedArgFromString(c: Class[_], s: String, uri: String): AnyRef = {
@@ -49,10 +49,9 @@ class UriExtracter(val uri: String) {
     val (webRootPath, className, methodName, args) = splitUri(uri)
     val c = try {
       Class.forName(className + "$")
-    }
-    catch {
-      case e:ClassNotFoundException =>
-        Errors.fatal("Interactions _ not callable from http, make sure it is extended by an InteractionsEnabler[__] object.\n_" 
+    } catch {
+      case e: ClassNotFoundException =>
+        Errors.fatal("Interactions _ not callable from http, make sure it is extended by an InteractionsEnabler[__] object.\n_"
           << (className, e.getMessage))
     }
     val interactions = c.getField("MODULE$").get(null).asInstanceOf[Interactions]
@@ -73,17 +72,17 @@ class UriExtracter(val uri: String) {
       argTypesWithValues.map((t: Tuple2[Class[_], String]) => createTypedArgFromString(t._1, t._2, uri))
     (webRootPath, method, interactions, argsArrayForInvokation.toArray.asInstanceOf[Array[AnyRef]], args)
   }
-  
+
   val (webRootPath, method, interactions, args, rawStringArgs) = extractInformation
-  
+
   def invoke[T] = {
     method.invoke(interactions, args: _*).asInstanceOf[T]
   }
-  
+
   def toUri = Uri(method, args)
-  
-  def fqn = 
+
+  def fqn =
     method.getDeclaringClass.getCanonicalName + "." +
-    method.getName
+      method.getName
 }
 

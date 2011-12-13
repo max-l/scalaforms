@@ -50,7 +50,7 @@ object Schema extends FawSchema {
   }
 
   def hashPassword(password: String) =
-    new String(Util.newMd5Function(password.getBytes))
+    new String(Util.md5(password.getBytes))
 
   private def createSyntheticAccount(username: String, accountId: Long) = {
 
@@ -92,7 +92,7 @@ object Schema extends FawSchema {
 
     val (anonymousUser, anonymousSystemAccount_) = createSyntheticAccount("anonymous", anonymousAccountId)
 
-    initilizeRoles(server.allRoles)
+    initializeRoles(server.allRoles)
 
     val anonRoleFqn = server.anonymousRole.fqn
 
@@ -101,38 +101,23 @@ object Schema extends FawSchema {
     anonRoleDef.systemAccounts.associate(anonymousSystemAccount_)
   }
 
-  def initilizeRoles(rs: Traversable[Role]) {
-
-    val md5 = Util.newMd5Function
+  def initializeRoles(rs: Traversable[Role]) {
 
     rs.foreach(r => {
 
-      val fqn = r.fqn
-      val bytes = md5(fqn.getBytes)
+      val hash = r.fqnStrongHash
 
-      val b1: Long = bytes(0)
-      val b2: Long = (bytes(1): Long) << 8
-      val b3: Long = (bytes(2): Long) << 16
-      val b4: Long = (bytes(3): Long) << 24
-      val b5: Long = (bytes(4): Long) << 32
-      val b6: Long = (bytes(5): Long) << 40
-      val b7: Long = (bytes(6): Long) << 48
-      val b8: Long = (bytes(7): Long) << 56
-
-      val k: Long = (b1 | b2 | b3 | b4 | b5 | b6 | b7 | b8)
-
-      val rd = roleDefinitions.lookup(k)
-
-      if (rd == None) {
-        val r0 = new RoleDefinition
-        r0.idField :- k
-        r0.fqn :- fqn
-        r0.creationTransactionId :- 0
-        r0.lastUpdateTransactionId :- 0
-        roleDefinitions.insert(r0)
-      } else {
-        if (rd.get.fqn.value != fqn)
-          Errors.fatal("FQN collision in RoleDefinion _." << rd.get.fqn)
+      roleDefinitions.lookup(hash) match {
+        case None =>
+          val rd = new RoleDefinition
+          rd.idField :- hash
+          rd.fqn :- r.fqn
+          rd.creationTransactionId :- 0
+          rd.lastUpdateTransactionId :- 0
+          roleDefinitions.insert(rd)
+        case Some(rd) =>
+          if (rd.fqn.value != r.fqn)
+            Errors.fatal("FQN collision in RoleDefinion _." << rd.fqn)
       }
     })
   }

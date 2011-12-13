@@ -16,7 +16,8 @@ object Buildz extends Build {
     organization := "net.strong_links",
     version := "0.2",
     scalaVersion := versionOfScala,
-    resolvers += ScalaToolsSnapshots
+    resolvers += ScalaToolsSnapshots,
+    logLevel := Level.Warn
   )
 
   lazy val root = Project(
@@ -47,7 +48,7 @@ object Buildz extends Build {
     ),
 */    
     Epoxy.epoxyTemplateRoots <<= sourceDirectory.map(src =>  Seq(src/ "main/templates")),
-    //Epoxy.epoxyResourceRoots <<= sourceDirectory.map(src =>  Nil: Seq[File]),
+    Epoxy.epoxyResourceRoots <<= sourceDirectory.map(src =>  Nil: Seq[File]),
 	  libraryDependencies  ++=  Seq(        
 	      core,
 	      bcel,
