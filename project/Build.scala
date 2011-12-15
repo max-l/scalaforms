@@ -54,14 +54,14 @@ object Buildz extends Build {
 	      core,
 	      bcel,
         "net.databinder" %% "unfiltered-filter" % "0.5.1",
-        "net.databinder" %% "unfiltered-jetty" % "0.5.1",       
+        "net.databinder" %% "unfiltered-jetty" % "0.5.1",      
+        "org.slf4j" % "slf4j-api" % "1.6.1",
+        "ch.qos.logback" % "logback-classic" % "1.0.0",
         "org.eclipse.jetty" % "jetty-webapp" % jettyVersion,
         "com.h2database" % "h2" % "1.3.160",
         "org.cometd.java" % "cometd-java-server" % "2.3.1",
         "org.cometd.java" % "cometd-java-common" % "2.3.1",        
         //"org.scala-tools.time" %% "time" % "0.5",
-        "com.weiglewilczek.slf4s" %% "slf4s" % "1.0.7",
-        "ch.qos.logback" % "logback-classic" % "1.0.0",
         squeryl
       )	    
     )
