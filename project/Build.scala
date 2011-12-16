@@ -17,7 +17,7 @@ object Buildz extends Build {
     version := "0.2",
     scalaVersion := versionOfScala,
     logLevel in Global := Level.Warn,
-    publishArtifact in packageDoc := false,    
+    publishArtifact in packageDoc := false,
     resolvers += ScalaToolsSnapshots
   )
 

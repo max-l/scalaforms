@@ -2,7 +2,7 @@ package net.strong_links.scalaforms
 
 import net.strong_links.core._
 import net.strong_links.scalaforms.ui._
-import net.strong_links.scalaforms.templates._
+import net.strong_links.scalaforms.templates.standard.page
 
 trait BaseInteraction {
   private var _os: OutStream = null
@@ -29,7 +29,7 @@ trait Interaction extends BaseInteraction {
 }
 
 object RawInteraction {
-  def apply(code: RenderingFunction) = { 
+  def apply(code: RenderingFunction) = {
     new RawInteraction {
       def action = code(os)
     }
@@ -37,28 +37,28 @@ object RawInteraction {
 }
 
 trait RawInteraction extends Interaction {
-  
+
   override def preAction {
     val parameterToReplace = "$parameterToReplace"
     val uri = SystemInteractions.uriFor(_.reportJavaScriptError(parameterToReplace))
-    standard.page.start(uri, parameterToReplace)(os)
-    os.write("<h1>Start</h1>")    
+    page.start(uri, parameterToReplace)(os)
+    os.write("<h1>Start</h1>")
   }
-  
+
   override def postAction {
-    os.write("<h1>End</h1>")    
-    standard.page.end(os)
+    os.write("<h1>End</h1>")
+    page.end(os)
   }
 }
 
-class StandardFormInteraction[R](f: => R)(getAction: Function1[R, Unit] , postAction: Function1[R, Unit]) 
+class StandardFormInteraction[R](f: => R)(getAction: Function1[R, Unit], postAction: Function1[R, Unit])
   extends Interaction {
-  def action = getAction(f) 
+  def action = getAction(f)
   def render {}
 }
- 
-class StandardGetInteraction[R](f: => R)(getAction: Function1[R, Unit]) 
+
+class StandardGetInteraction[R](f: => R)(getAction: Function1[R, Unit])
   extends Interaction {
-  def action = getAction(f) 
+  def action = getAction(f)
   def render {}
 }

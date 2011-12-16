@@ -2,25 +2,25 @@ package net.strong_links.scalaforms.ui
 
 import net.strong_links.core._
 import net.strong_links.scalaforms._
-import net.strong_links.scalaforms.templates._
+import net.strong_links.scalaforms.templates.standard.forms
 
 class FormFieldSet(val formFields: FormField*) extends DisplayAttributes[FormFieldSet] {
 
   override def toString = {
     "Field set _" << _label
   }
-  
+
   def defaultRenderer(os: OutStream) {
     _label match {
       case None =>
-        standard.forms.fieldSetStart(os)
+        forms.fieldSetStart(os)
       case Some(label) =>
-        standard.forms.fieldSetStartWithLabel(label)(os)
+        forms.fieldSetStartWithLabel(label)(os)
     }
-    standard.forms.beforeFields(os)
+    forms.beforeFields(os)
     formFields.foreach(_.render(os))
-    standard.forms.afterFields(os)
-    standard.forms.fieldSetEnd(os)
+    forms.afterFields(os)
+    forms.fieldSetEnd(os)
   }
 }
 
@@ -30,4 +30,3 @@ object FormFieldSet {
   }
 }
 
-  
