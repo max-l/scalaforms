@@ -4,7 +4,7 @@ import net.strong_links.core._
 import net.strong_links.scalaforms.domains._
 import net.strong_links.scalaforms.schema._
 
-import net.strong_links.scalaforms.squeryl.SquerylDslSupport._
+import net.strong_links.scalaforms.squeryl.SquerylFacade._
 import javax.servlet.http.HttpSession
 
 private[scalaforms] class IdentityWithinServer(val session: HttpSession, val authentication: Authentication, val systemAccount: SystemAccount, val user: User, val roleSet: RoleSet) {

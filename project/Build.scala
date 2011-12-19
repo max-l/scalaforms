@@ -8,7 +8,7 @@ object Buildz extends Build {
   val core = "net.strong_links" %% "core" % "0.2"  
   val cglib = "cglib" % "cglib-nodep" % "2.2"
   val bcel = "org.apache.bcel" % "bcel" % "5.2"  
-  val squeryl = "org.squeryl" %% "squeryl" % "0.9.5-SNAPSHOT"            
+  val squeryl = "org.squeryl" %% "squeryl" % "0.9.5-extended-types-poc2"
   val versionOfScala = "2.9.1"
   val jettyVersion = "7.5.4.v20111024"
 				   

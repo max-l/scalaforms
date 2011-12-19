@@ -103,7 +103,7 @@ trait Server extends Logging {
 
     val session = httpRequest.underlying.getSession(true): HttpSession
 
-    import net.strong_links.scalaforms.squeryl.SquerylDslSupport._
+    import net.strong_links.scalaforms.squeryl.SquerylFacade._
     val (needsRedirect, iws) = inTransaction {
       lookupIdentity(session, params.get("authId"))
     }

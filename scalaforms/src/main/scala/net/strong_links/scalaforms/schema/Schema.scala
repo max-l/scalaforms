@@ -3,17 +3,16 @@ package net.strong_links.scalaforms.schema
 import net.strong_links.core._
 import net.strong_links.scalaforms._
 import net.strong_links.scalaforms.domains._
-import net.strong_links.scalaforms.squeryl.SquerylDslSupport._
+import net.strong_links.scalaforms.squeryl.SquerylFacade._
 import org.squeryl.KeyedEntity
 import org.squeryl.SessionFactory
 import org.squeryl.Session
 import org.squeryl.adapters.H2Adapter
 import java.io.File
-import net.strong_links.scalaforms.squeryl.FawSchema
 import org.squeryl.dsl.CompositeKey2
 import org.squeryl.IndirectKeyedEntity
 
-object Schema extends FawSchema {
+object Schema extends org.squeryl.Schema {
 
   val dbFilePrefix = "faw-db"
 

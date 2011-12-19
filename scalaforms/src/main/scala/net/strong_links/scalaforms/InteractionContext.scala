@@ -3,7 +3,7 @@ package net.strong_links.scalaforms
 import net.strong_links.core._
 import net.strong_links.scalaforms.schema._
 
-import net.strong_links.scalaforms.squeryl.SquerylDslSupport._
+import net.strong_links.scalaforms.squeryl.SquerylFacade._
 
 import javax.servlet.http.HttpSession
 import unfiltered.request._
