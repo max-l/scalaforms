@@ -1,50 +1,50 @@
-<!-- template formStart -->
+<!-- def formStart -->
 
 <form>12345<!-- commentaire -->12345
 
-<!-- template formStartWithLabel($label) -->
+<!-- def formStartWithLabel($label) -->
 
 <h3>$label</h3>
 <form>
 
-<!-- template formEnd -->
+<!-- def formEnd -->
 
 </form>
 
-<!-- template fieldSetStart -->
+<!-- def fieldSetStart -->
 
 <fieldset>
 
-<!-- template fieldSetStartWithLabel($label) -->
+<!-- def fieldSetStartWithLabel($label) -->
 
 <fieldset><legend>$label:raw</legend>
 
-<!-- template beforeFields -->
+<!-- def beforeFields -->
 
 <table>
 
-<!-- template fieldSpacer -->
+<!-- def fieldSpacer -->
 
 <td>&nbsp;&nbsp;</td>
 
-<!-- template fieldLabel($label) -->
+<!-- def fieldLabel($label) -->
 
 <label>$label</label>
 
-<!-- template fieldLabelFor($label, $inputFieldId) -->
+<!-- def fieldLabelFor($label, $inputFieldId) -->
 
 <label for="$inputFieldId">$label</label>
 
-<!-- template field($f, $spacer) -->
+<!-- def `field`($f, $spacer) -->
 
-<tr><td>$f:fieldLabel</td>$spacer:raw<td>$f:fieldControl</td></tr>
+<tr><td>$f:label</td>$spacer:raw<td>$f:control</td></tr>
 
-<!-- template afterFields -->
+<!-- def afterFields -->
 
 </table>
 
-<!-- template fieldSetEnd -->
+<!-- def fieldSetEnd -->
 
 </fieldset>
 
-<!-- templateEnd  -->
+<!-- end  -->
