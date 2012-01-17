@@ -145,7 +145,7 @@ trait Role extends dumpable with FullyQualifiedName {
   }
 
   def dump(cs: LeveledCharStream) {
-    cs.println("Permissions for role _" <<< name.msgid)
+    cs.println("Permissions for role _" <<< name)
     def dumpList(list: List[Permission]) {
       list.sortWith(_.description < _.description).foreach(p => cs.println(p.description))
     }
@@ -176,12 +176,12 @@ class RoleSet(val roles: Seq[Role]) extends dumpable {
   def dump(cs: LeveledCharStream) {
     cs.println("Role set")
     cs.increaseLevel
-    roles.sortWith(_.name.msgid < _.name.msgid).foreach(_.dump(cs))
+    roles.sortWith(_.name.key < _.name.key).foreach(_.dump(cs))
     cs.decreaseLevel
   }
 
   override def toString = {
-    roles.sortWith(_.name.msgid < _.name.msgid).mkString(", ")
+    roles.sortWith(_.name.key < _.name.key).mkString(", ")
   }
 }
 

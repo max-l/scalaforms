@@ -40,7 +40,7 @@ class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] wi
       case None =>
         basicToString
       case Some(label) =>
-        (basicToString + " _") << label.msgid
+        (basicToString + " _") << label
     }
   }
 
