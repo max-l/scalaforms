@@ -1,4 +1,3 @@
-
 package net.strong_links
 
 import net.strong_links.core._
