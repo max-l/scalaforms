@@ -21,8 +21,6 @@ object Schema extends org.squeryl.Schema {
     workDir.listFiles.filter(_.getName.startsWith(dbFilePrefix)).toSeq
   }
 
-  def dbConnectionInfo = ("org.h2.Driver", "jdbc:h2:./" + dbFilePrefix + ";USER=sa;PASSWORD=;AUTO_SERVER=TRUE;MVCC=true")
-
   val users = table[User]
 
   val systemAccounts = table[SystemAccount]
@@ -38,15 +36,10 @@ object Schema extends org.squeryl.Schema {
       via[SystemAccountToRole]((s, r, s2r) => (s2r.roleDefinitionId === s.id, r.id === s2r.systemAccountId))
 
   on(transactions)(t => declare(
-    t.stackDump is (dbType("clob"))))
+    t.stackDump is (dbType("text"))))
 
   on(roleDefinitions)(rd => declare(
     rd.id is (primaryKey)))
-
-  def newJdbcConnection = {
-    val c = java.sql.DriverManager.getConnection(Schema.dbConnectionInfo._2)
-    c
-  }
 
   def hashPassword(password: String) =
     new String(Util.md5(password.getBytes))

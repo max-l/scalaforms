@@ -11,17 +11,6 @@ import org.squeryl.adapters.H2Adapter
 
 object SqueryInteractionRunner {
 
-  private [scalaforms] def init {
-
-    Class.forName(Schema.dbConnectionInfo._1)
-    
-    def newJdbcConnection = {
-      java.sql.DriverManager.getConnection(Schema.dbConnectionInfo._2)
-    }
-  
-    SessionFactory.concreteFactory = Some(() => Session.create(newJdbcConnection, new H2Adapter))
-  }
-
   private [scalaforms] def run(sos: ServerOutputStream) {
 
     val ic = interactionContext.get

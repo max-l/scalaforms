@@ -10,8 +10,8 @@ object Buildz extends Build {
   val bcel = "org.apache.bcel" % "bcel" % "5.2"  
   val squeryl = "org.squeryl" %% "squeryl" % "0.9.5-extended-types-poc2"
   val versionOfScala = "2.9.1"
-  val jettyVersion = "7.5.4.v20111024"
-				   
+  val jettyVersion = "7.6.0.RC5"
+
   def buildSettings = Defaults.defaultSettings ++ Seq(
     organization := "net.strong_links",
     version := "0.2",
