@@ -5,7 +5,7 @@ import Keys._
 
 object Buildz extends Build {
 
-  val core = "net.strong_links" %% "core" % "0.2"  
+  val core = "com.strong-links" %% "core" % "0.2"  
   val cglib = "cglib" % "cglib-nodep" % "2.2"
   val bcel = "org.apache.bcel" % "bcel" % "5.2"  
   val squeryl = "org.squeryl" %% "squeryl" % "0.9.5-extended-types-poc2"
@@ -13,7 +13,7 @@ object Buildz extends Build {
   val jettyVersion = "7.5.4.v20111024"
 				   
   def buildSettings = Defaults.defaultSettings ++ Seq(
-    organization := "net.strong_links",
+    organization := "com.strong-links",
     version := "0.2",
     scalaVersion := versionOfScala,
     logLevel in Global := Level.Warn,
@@ -35,7 +35,7 @@ object Buildz extends Build {
     )
   )
    
-  import net.strong_links.epoxy.Epoxy
+  import com.strong_links.epoxy.Epoxy
 
 
   lazy val scalaforms = Project(
@@ -43,9 +43,9 @@ object Buildz extends Build {
     base = file("scalaforms"),    
     settings = buildSettings ++ Epoxy.init ++ Seq(
 /*    I18nGen(
-      new I18nCatalog("net.strong_links.scalaforms", "./scalaforms/src/main/scala", "fr"),
-      new I18nCatalog("net.strong_links.scalaforms", "./scalaforms/src/main/scala", "fr", "CA"),
-      new I18nCatalog("net.strong_links.scalaforms", "./scalaforms/src/main/scala", "en", "UK")
+      new I18nCatalog("com.strong_links.scalaforms", "./scalaforms/src/main/scala", "fr"),
+      new I18nCatalog("com.strong_links.scalaforms", "./scalaforms/src/main/scala", "fr", "CA"),
+      new I18nCatalog("com.strong_links.scalaforms", "./scalaforms/src/main/scala", "en", "UK")
     ),
 */    
     Epoxy.epoxyTemplateRoots <<= sourceDirectory.map(src =>  Seq(src/ "main/templates")),
