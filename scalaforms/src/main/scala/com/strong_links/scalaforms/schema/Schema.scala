@@ -147,7 +147,7 @@ class SystemAccount extends BaseFingerprintedObject {
   val password = PasswordDomain ~
   val failedLoginAttempts = FailedLoginAttemptsDomain ~
   val preferredLanguageCode = PreferredLanguageCodeDomain ~
-  lazy val preferredI18nLanguageKey = I18nLanguageKey.from(preferredLanguageCode.value)
+  lazy val preferredI18nLocale = I18nLocale.from(preferredLanguageCode.value)
   lazy val roleDefinitions = Schema.systemAccountToRoles.left(this)
 }
 

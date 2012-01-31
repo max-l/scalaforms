@@ -62,6 +62,5 @@ package object scalaforms {
     def transform(field: BaseField[_]): FieldRendering = field
   }
 
-  val p = List("com", "strong_links", "scalaforms")
-  implicit val catalog = new I18nCatalog(p, I18nCodeLocalization.en(p), Nil)
+  implicit val catalog = new I18nConfig("com.strong_links.scalaforms", I18nKnownLocalization.en).toCatalog
 }

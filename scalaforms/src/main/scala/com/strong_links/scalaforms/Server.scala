@@ -84,7 +84,7 @@ trait Server extends Logging {
     httpRequest: HttpRequest[HttpServletRequest], sos: ServerOutputStream) {
     try
       interactionContext.using(new InteractionContext(iws, this, u, httpRequest)) {
-        userI18nLanguageKey.using(iws.systemAccount.preferredI18nLanguageKey) {
+        userI18nLocale.using(iws.systemAccount.preferredI18nLocale) {
           fieldTransformer.using(identityFieldTransformer) {
             SqueryInteractionRunner.run(sos)
           }
