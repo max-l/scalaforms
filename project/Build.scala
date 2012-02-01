@@ -20,34 +20,26 @@ object Buildz extends Build {
     publishArtifact in packageDoc := false,
     resolvers += ScalaToolsSnapshots
   )
-
-  lazy val root = Project(
-    id = "root",
-    base = file("."),    
-    settings = buildSettings
-  ) aggregate(scalaforms)
-
-  lazy val build = Project(
-    id = "project",
-    base = file("project"),    
-    settings = buildSettings ++ Seq(    
-      sbtPlugin := true
-    )
-  )
    
   import com.strong_links.epoxy.Epoxy
+  import com.strong_links.core._
+  import com.strong_links.i18ngen.I18nGen
+  import com.strong_links.i18ngen.I18nGen._
+  import java.util.Locale
 
 
   lazy val scalaforms = Project(
     id = "scalaforms",
     base = file("scalaforms"),    
-    settings = buildSettings ++ Epoxy.init ++ Seq(
-/*    I18nGen(
-      new I18nCatalog("com.strong_links.scalaforms", "./scalaforms/src/main/scala", "fr"),
-      new I18nCatalog("com.strong_links.scalaforms", "./scalaforms/src/main/scala", "fr", "CA"),
-      new I18nCatalog("com.strong_links.scalaforms", "./scalaforms/src/main/scala", "en", "UK")
-    ),
-*/    
+    settings = buildSettings ++ Epoxy.init ++ I18nGen.init ++ Seq(
+     com.strong_links.i18ngen.I18nGen.i18nConfigs := Seq(
+         new I18nConfig(
+             "com.strong_links.scalaforms", 
+             I18nKnownLocalization.en_US,
+             Seq(new Locale("fr")), 
+             Seq(new Locale("fr", "CA"))
+         )
+     ),
     Epoxy.epoxyTemplateRoots <<= sourceDirectory.map(src =>  Seq(src/ "main/templates")),
     Epoxy.epoxyResourceRoots <<= sourceDirectory.map(src =>  Nil: Seq[File]),
 	  libraryDependencies  ++=  Seq(        
