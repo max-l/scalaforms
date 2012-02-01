@@ -10,7 +10,7 @@ import unfiltered.request._
 import javax.servlet.http.HttpServletRequest
 
 class InteractionContext(var iws: IdentityWithinServer, val server: Server,
-  val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest])
+  val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], i18nLocale: I18nLocale)
   extends Logging {
 
   val allowed =

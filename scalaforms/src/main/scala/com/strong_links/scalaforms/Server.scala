@@ -83,11 +83,9 @@ trait Server extends Logging {
   def processUri(iws: IdentityWithinServer, session: HttpSession, u: UriExtracter,
     httpRequest: HttpRequest[HttpServletRequest], sos: ServerOutputStream) {
     try
-      interactionContext.using(new InteractionContext(iws, this, u, httpRequest)) {
-        userI18nLocale.using(iws.systemAccount.preferredI18nLocale) {
-          fieldTransformer.using(identityFieldTransformer) {
-            SqueryInteractionRunner.run(sos)
-          }
+      interactionContext.using(new InteractionContext(iws, this, u, httpRequest, iws.systemAccount.preferredI18nLocale)) {
+        fieldTransformer.using(identityFieldTransformer) {
+          SqueryInteractionRunner.run(sos)
         }
       }
     catch {
