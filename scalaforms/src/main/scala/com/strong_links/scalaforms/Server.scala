@@ -17,6 +17,7 @@ import javax.servlet.FilterConfig
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.FilterChain
+import org.slf4j.LoggerFactory
 
 trait Server extends Logging {
 
@@ -124,6 +125,8 @@ trait Server extends Logging {
   private[scalaforms] val jettyAdapter = new JettyAdapter(this)
 
   def start(host: String, port: Int, staticContentDirectory: File): Unit = {
+
+    Logging.setLogger(LoggerFactory.getLogger)
 
     logInfo("Starting server on port _." <<< port)
     val webRoot = staticContentDirectory.getCanonicalFile
