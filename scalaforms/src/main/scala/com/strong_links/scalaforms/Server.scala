@@ -10,13 +10,13 @@ import java.io._
 import org.eclipse.jetty.server.handler.ErrorHandler
 import org.eclipse.jetty.server.Request
 import javax.servlet.http.HttpServletResponse
-import org.eclipse.jetty.server.HttpConnection
 import org.eclipse.jetty.http.HttpStatus
 import javax.servlet.Filter
 import javax.servlet.FilterConfig
 import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.FilterChain
+import java.sql.Driver
 
 trait Server extends Logging {
 
@@ -125,17 +125,15 @@ trait Server extends Logging {
 
   private[scalaforms] val jettyAdapter = new JettyAdapter(this)
 
-  def start(host: String, port: Int, staticContentDirectory: File): Unit = {
+  def start(host: String, port: Int, staticContentDirectory: File, jdbcDriver: Driver, jdbcUrlWithUsernameAndPassword: String): Unit = {
 
     logInfo("Starting server on port _." <<< port)
     val webRoot = staticContentDirectory.getCanonicalFile
     logInfo("Static content directory _" <<< webRoot.getAbsolutePath)
 
-    SqueryInteractionRunner.init
-
     unfiltered.jetty.Http(8080, host).
       context(applicationWebroot) { c =>
-        jettyAdapter.init(c.current, port, host)
+        jettyAdapter.init(c.current, port, host, jdbcDriver, jdbcUrlWithUsernameAndPassword)
         c.filter(InteractionHandler)
       }.
       context(cometWebroot)(ctx => ComedDServerImpl.createBayeuxHandlerInto(ctx.current)).
@@ -144,7 +142,7 @@ trait Server extends Logging {
         ctx.resources(webRoot.toURI.toURL)
 
         ctx.filter(new Filter {
-          def init(filterConfig: FilterConfig) {}
+          def init(filterConfig: FilterConfig) { }
           def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
 
             val jettyRequest = request.asInstanceOf[org.eclipse.jetty.server.Request]
@@ -160,11 +158,12 @@ trait Server extends Logging {
           override def handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             try {
 
-              val connection = HttpConnection.getCurrentConnection
-              val statusCode = connection.getResponse.getStatus
-              val reason = HttpStatus.getMessage(statusCode)
 
-              logError("ERROR serving static file : _, _ " << (statusCode, reason))
+              
+              //val connection = HttpConnection.getCurrentConnection
+              //val statusCode = connection.getResponse.getStatus
+              //val reason = HttpStatus.getMessage(statusCode)              
+              //logError("ERROR serving static file : _, _ " << (statusCode, reason))
 
               super.handle(target, baseRequest, request, response)
             } catch {

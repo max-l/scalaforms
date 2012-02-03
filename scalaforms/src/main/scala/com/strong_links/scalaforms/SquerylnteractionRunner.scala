@@ -11,18 +11,9 @@ import org.squeryl.adapters.H2Adapter
 
 object SqueryInteractionRunner {
 
-  private [scalaforms] def init {
-
-    Class.forName(Schema.dbConnectionInfo._1)
-    
-    def newJdbcConnection = {
-      java.sql.DriverManager.getConnection(Schema.dbConnectionInfo._2)
-    }
-  
-    SessionFactory.concreteFactory = Some(() => Session.create(newJdbcConnection, new H2Adapter))
-  }
 
   private [scalaforms] def run(ic: InteractionContext) {
+
 
     val tx = transaction {
       val tx0 = new Transaction
@@ -46,7 +37,7 @@ object SqueryInteractionRunner {
     
     try 
       transaction {
-        val interaction = ic.u.invoke[Interaction]
+        val interaction = ic.u.invoke(ic)
         val results = interaction.process(ic)
         update(Schema.transactions)(t =>
           where(t.id === tx.id)

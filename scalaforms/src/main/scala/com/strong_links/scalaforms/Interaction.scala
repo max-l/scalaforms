@@ -76,7 +76,7 @@ object GetPage {
 
 object Interaction {
   
-  def apply(f: InteractionContext => Interaction): Interaction = null
+  def apply(f: InteractionContext => Interaction) = f
   
 }
 

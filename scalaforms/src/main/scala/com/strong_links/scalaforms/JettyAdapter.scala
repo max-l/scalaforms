@@ -36,13 +36,13 @@ class JettyAdapter(server: Server) extends Logging {
     }
   }
 
-  def init(ctx: ServletContextHandler, port: Int, host: String) {
+  def init(ctx: ServletContextHandler, port: Int, host: String, jdbcDriver: java.sql.Driver, jdbcUrl: String) {
 
     val jism = new JDBCSessionIdManager(ctx.getServer)
 
     jism.setWorkerName(host + "_" + port) // this is the cluster node name (must be unique within cluster) 
 
-    jism.setDriverInfo(Schema.dbConnectionInfo._1, Schema.dbConnectionInfo._2)
+    jism.setDriverInfo(jdbcDriver, jdbcUrl)
     jism.setScavengeInterval(60)
     ctx.getServer.setSessionIdManager(jism)
 

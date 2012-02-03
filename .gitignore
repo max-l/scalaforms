@@ -13,6 +13,7 @@ rescomp.cache
 
 # Scala-IDE ignores :
 
+*/bin/*
 .scala_dependencies
 .project
 .classpath

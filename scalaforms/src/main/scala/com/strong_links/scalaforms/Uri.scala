@@ -75,8 +75,10 @@ class UriExtracter(val uri: String) {
 
   val (webRootPath, method, interactions, args, rawStringArgs) = extractInformation
 
-  def invoke[T] =
-    method.invoke(interactions, args: _*).asInstanceOf[Interaction]
+  def invoke(ic: InteractionContext) = {
+    val z = method.invoke(interactions, args: _*).asInstanceOf[InteractionContext => Interaction]
+    z(ic)
+  }
 
   def toUri(ic: InteractionContext) = Uri(method, args, Option(ic))
 
