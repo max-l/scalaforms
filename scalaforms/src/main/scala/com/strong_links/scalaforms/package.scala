@@ -54,7 +54,7 @@ package object scalaforms {
     sos.get
   }
 
-  object interactionContext extends ThreadLocalStack[InteractionContext]
+  //object interactionContext extends ThreadLocalStack[InteractionContext]
 
   object fieldTransformer extends ThreadLocalStack[FieldTransformer]
 

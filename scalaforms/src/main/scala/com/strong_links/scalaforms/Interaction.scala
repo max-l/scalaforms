@@ -4,61 +4,109 @@ import com.strong_links.core._
 import com.strong_links.scalaforms.ui._
 import com.strong_links.scalaforms.templates.standard.page
 
-trait BaseInteraction {
-  private var _os: OutStream = null
-  def os = {
-    if (_os == null)
-      Errors.fatal("Output stream has not been initialized.")
-    _os
-  }
-  def init(outStream: OutStream) {
-    _os = outStream
-  }
-  def run: Unit
+
+trait Interaction {
+  
+  def process(ic: InteractionContext)
 }
 
-trait Interaction extends BaseInteraction {
-  def preAction {}
-  def action: Unit
-  def postAction {}
-  def run = {
-    preAction
-    action
-    postAction
+
+object Form {
+  
+  def prepare[R](prepareFunc: => R) = 
+    new FormPrepare(prepareFunc _)
+  
+  class FormPrepare[R](prepareFunc: () => R) {
+
+    def renderWith(renderFunc: R => Unit) = 
+      new FormRenderer(prepareFunc, renderFunc)
   }
+
+  class FormRenderer[R](prepareFunc: () => R, renderFunc: R => Unit) {
+
+    def save(saveFunc: R => Unit) =
+      new FormInteraction(prepareFunc, renderFunc, saveFunc)
+  }
+
+  class FormInteraction[R](val prepareFunc: ()=> R, val renderFunc: R => Unit, val saveFunc: R => Unit) 
+    extends Interaction {
+
+    def process(ic: InteractionContext) {
+      // incomplete ...
+      val r = prepareFunc()
+      renderFunc(r)
+    }
+  }
+  
 }
 
-object RawInteraction {
-  def apply(code: RenderingFunction) = {
-    new RawInteraction {
-      def action = code(os)
+object GetAction {
+  
+  def apply(action: => Unit) = new GetAction(action _) 
+  
+  class GetAction(action: () => Unit) extends Interaction {
+    
+    def process(ic: InteractionContext) {
+      action()
     }
   }
 }
 
-trait RawInteraction extends Interaction {
+object GetPage {
+  
+  def prepare[R](prepareFunc: => R) = 
+    new GetPrepare(prepareFunc _)
+  
+  class GetPrepare[R](prepareFunc: () => R) {
+    
+    def renderWith(renderFunc: R => Unit) = 
+      new GetInteraction(prepareFunc, renderFunc)
+  }
+  
+  class GetInteraction[R](prepareFunc: () => R, renderFunc: R => Unit) 
+    extends Interaction {
+    
+    def process(ic: InteractionContext) {
+      val r = prepareFunc()
+      renderFunc(r)
+    }
+  }
+}
 
-  override def preAction {
+
+object Interaction {
+  
+  def apply(f: InteractionContext => Interaction): Interaction = null
+  
+}
+
+//trait Interaction
+
+trait RawInteraction { //}extends Interaction {
+
+  val os: OutStream = null
+  /*
+  def preAction {
     val parameterToReplace = "$parameterToReplace"
     val uri = SystemInteractions.uriFor(_.reportJavaScriptError(parameterToReplace))
     page.startPage(uri, parameterToReplace)(os)
     os.write("<h1>Start</h1>")
   }
-
-  override def postAction {
+*/
+  def postAction {
     os.write("<h1>End</h1>")
     page.endPage(os)
   }
 }
 
 class StandardFormInteraction[R](f: => R)(getAction: Function1[R, Unit], postAction: Function1[R, Unit])
-  extends Interaction {
+   {
   def action = getAction(f)
   def render {}
 }
 
 class StandardGetInteraction[R](f: => R)(getAction: Function1[R, Unit])
-  extends Interaction {
+   {
   def action = getAction(f)
   def render {}
 }

@@ -2,16 +2,18 @@ package com.strong_links.scalaforms
 
 import com.strong_links.core._
 import com.strong_links.scalaforms.schema._
-
 import com.strong_links.scalaforms.squeryl.SquerylFacade._
-
 import javax.servlet.http.HttpSession
 import unfiltered.request._
 import javax.servlet.http.HttpServletRequest
+import com.sun.org.apache.xalan.internal.xsltc.compiler.Output
+import java.io.PrintWriter
 
 class InteractionContext(var iws: IdentityWithinServer, val server: Server,
-  val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], i18nLocale: I18nLocale)
-  extends Logging {
+  val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], i18nLocale: I18nLocale, 
+  params: Map[String, Seq[String]], val out: ServerOutputStream) extends Logging {
+
+  def <<(s: String) = out.write(s)
 
   val allowed =
     iws.roleSet.allows(u.interactions.asInstanceOf[InteractionsEnabler[_]]) ||

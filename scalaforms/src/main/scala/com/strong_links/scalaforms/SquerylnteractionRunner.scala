@@ -22,10 +22,8 @@ object SqueryInteractionRunner {
     SessionFactory.concreteFactory = Some(() => Session.create(newJdbcConnection, new H2Adapter))
   }
 
-  private [scalaforms] def run(sos: ServerOutputStream) {
+  private [scalaforms] def run(ic: InteractionContext) {
 
-    val ic = interactionContext.get
-    
     val tx = transaction {
       val tx0 = new Transaction
       tx0.startTime :- nowTimestamp
@@ -49,8 +47,7 @@ object SqueryInteractionRunner {
     try 
       transaction {
         val interaction = ic.u.invoke[Interaction]
-        interaction.init(sos)
-        val results = interaction.run
+        val results = interaction.process(ic)
         update(Schema.transactions)(t =>
           where(t.id === tx.id)
           set(t.status  := CompletionStatusDomain.Success,                      

@@ -81,13 +81,15 @@ trait Server extends Logging {
   }
 
   def processUri(iws: IdentityWithinServer, session: HttpSession, u: UriExtracter,
-    httpRequest: HttpRequest[HttpServletRequest], sos: ServerOutputStream) {
-    try
-      interactionContext.using(new InteractionContext(iws, this, u, httpRequest, iws.systemAccount.preferredI18nLocale)) {
-        fieldTransformer.using(identityFieldTransformer) {
-          SqueryInteractionRunner.run(sos)
-        }
+    httpRequest: HttpRequest[HttpServletRequest], sos: ServerOutputStream, params: Map[String, Seq[String]]) {
+    try {
+      
+      val ctx = new InteractionContext(iws, this, u, httpRequest, iws.systemAccount.preferredI18nLocale, params, sos)
+      
+      fieldTransformer.using(identityFieldTransformer) {
+        SqueryInteractionRunner.run(ctx)
       }
+    }
     catch {
       case e: Exception => Errors.fatal(e)
     }
@@ -114,7 +116,7 @@ trait Server extends Logging {
       new ResponseStreamer {
         def stream(os: OutputStream) {
           val sos = new ServerOutputStream(os)
-          processUri(iws, session, u, httpRequest, sos)
+          processUri(iws, session, u, httpRequest, sos, params)
           sos.flush
         }
       }
