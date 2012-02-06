@@ -25,18 +25,14 @@ object Buildz extends Build {
   import com.strong_links.i18ngen.I18nGen
   import com.strong_links.i18ngen.I18nGen._
   import java.util.Locale
-
-
+  import I18nStock._
+  
   lazy val scalaforms = Project(
     id = "scalaforms",
     base = file("scalaforms"),    
     settings = buildSettings ++ Epoxy.init ++ I18nGen.init ++ Seq(
      com.strong_links.i18ngen.I18nGen.i18nConfigs := Seq(
-         new I18nConfig(
-             "com.strong_links.scalaforms", 
-             I18nKnownLocalization.en_US,
-             Seq(new Locale("fr")), 
-             Seq(new Locale("fr", "CA"))
+         new I18nConfig("com.strong_links.scalaforms", en_US, Seq(fr), Seq(fr_CA, fr_FR)
          )
      ),
     Epoxy.epoxyTemplateRoots <<= sourceDirectory.map(src =>  Seq(src/ "main/templates")),
@@ -47,7 +43,6 @@ object Buildz extends Build {
         "net.databinder" %% "unfiltered-filter" % "0.5.1",
         "net.databinder" %% "unfiltered-jetty" % "0.5.1",      
         "org.slf4j" % "slf4j-api" % "1.6.1",
-        "ch.qos.logback" % "logback-classic" % "1.0.0",
         "org.eclipse.jetty" % "jetty-webapp" % jettyVersion,
         "com.h2database" % "h2" % "1.3.160",
         "org.cometd.java" % "cometd-java-server" % "2.3.1",

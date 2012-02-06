@@ -23,6 +23,7 @@ trait Permission {
 private[scalaforms] class ClassPermission(val interactionsEnabler: InteractionsEnabler[_]) extends Permission {
 
   val name = interactionsEnabler.clasz.getCanonicalName
+
   lazy val includedMethods = Tweaks.getPublicMethodsWithReturnType(interactionsEnabler.clasz, classOf[Interaction])
 
   def description = "Execute all interaction methods in _" <<< name
