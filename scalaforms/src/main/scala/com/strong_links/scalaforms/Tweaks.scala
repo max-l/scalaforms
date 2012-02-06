@@ -3,6 +3,7 @@ package com.strong_links.scalaforms
 import com.strong_links.core._
 
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import net.sf.cglib.proxy._
 import org.apache.bcel.Repository
 
@@ -25,7 +26,7 @@ object Tweaks {
     if (list.length != 1)
       Errors.fatal("Unexpected number of methods _, 1 expected." << list.length)
     val targetMethod = list.head
-    val lines = Util.split(targetMethod.getCode.toString)
+    val lines = Util.split(targetMethod.getCode.toString, '\n')
     val flist =
       for (
         line <- lines;
@@ -53,23 +54,8 @@ object Tweaks {
     methods.head
   }
 
-  def getPublicMethodsWithReturnType(c: Class[_], returnType: Class[_]) = {
-    import java.lang.reflect._
-    def rmatch(x: Class[_]) = {
-      var done = false
-      var ok = false
-      var sc = x
-      while (!done) {
-        ok = (sc == returnType)
-        done = ok || (sc == classOf[Object] || sc.isPrimitive)
-        if (!done)
-          sc = sc.getSuperclass
-      }
-      ok
-    }
-    def selected(m: Method) = Modifier.isPublic(m.getModifiers) && rmatch(m.getReturnType)
-    c.getMethods.filter(selected).toList
-  }
+  def getPublicMethodsWithReturnType(c: Class[_], returnType: Class[_]) =
+    c.getMethods.filter(m => Modifier.isPublic(m.getModifiers) && returnType.isAssignableFrom(m.getReturnType)).toList
 
   def getFullMethodName(method: Method) = {
 

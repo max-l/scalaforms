@@ -6,9 +6,12 @@ import com.strong_links.scalaforms.templates.standard.forms
 
 class Form(val formFieldSets: FormFieldSet*) extends DisplayAttributes[Form] with FieldTransformer {
 
-  Util.checkDuplicates(formFieldSets) { ffs => Errors.fatal("_ appears twice on the form." << ffs) }
+  Util.findDuplicatesOption(formFieldSets).collect { case x => Errors.fatal("Duplicate form field sets _." << x) }
+
   val formFields = formFieldSets.flatten(_.formFields).toList
-  Util.checkDuplicates(formFields) { ff => Errors.fatal("_ appears twice on the form." << ff) }
+
+  Util.findDuplicatesOption(formFields).collect { case x => Errors.fatal("Duplicate form fields _." << x) }
+
   (0 /: formFields)((seq, ff) => { ff._tabOrder = seq; seq + 1 })
 
   val runMap = formFields.map((ff) => (ff.field, ff)).toMap[BaseField[_], FormField]

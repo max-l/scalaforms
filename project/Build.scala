@@ -26,18 +26,14 @@ object Buildz extends Build {
   import com.strong_links.i18ngen.I18nGen
   import com.strong_links.i18ngen.I18nGen._
   import java.util.Locale
-
-
+  import I18nStock._
+  
   lazy val scalaforms = Project(
     id = "scalaforms",
     base = file("scalaforms"),    
     settings = buildSettings ++ Epoxy.init ++ I18nGen.init ++ Seq(
      com.strong_links.i18ngen.I18nGen.i18nConfigs := Seq(
-         new I18nConfig(
-             "com.strong_links.scalaforms", 
-             I18nKnownLocalization.en_US,
-             Seq(new Locale("fr")), 
-             Seq(new Locale("fr", "CA"))
+         new I18nConfig("com.strong_links.scalaforms", en_US, Seq(fr), Seq(fr_CA, fr_FR)
          )
      ),
     Epoxy.epoxyTemplateRoots <<= sourceDirectory.map(src =>  Seq(src/ "main/templates")),
