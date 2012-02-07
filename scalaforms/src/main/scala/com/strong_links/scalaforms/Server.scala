@@ -84,14 +84,16 @@ trait Server extends Logging {
   def processUri(iws: IdentityWithinServer, session: HttpSession, u: UriExtracter,
     httpRequest: HttpRequest[HttpServletRequest], sos: ServerOutputStream, params: Map[String, Seq[String]]) {
     try {
-      
-      val ctx = new InteractionContext(iws, this, u, httpRequest, iws.systemAccount.preferredI18nLocale, params, sos)
-      
+
+      var i18nLocale = iws.systemAccount.preferredI18nLocale
+      i18nLocale = I18nStock.fr_CA
+      println("Serving request with locale _." << i18nLocale)
+      val ctx = new InteractionContext(iws, this, u, httpRequest, i18nLocale, params, sos)
+
       fieldTransformer.using(identityFieldTransformer) {
         SqueryInteractionRunner.run(ctx)
       }
-    }
-    catch {
+    } catch {
       case e: Exception => Errors.fatal(e)
     }
   }
@@ -116,9 +118,9 @@ trait Server extends Logging {
     else {
       new ResponseStreamer {
         def stream(os: OutputStream) {
-          val sos = new ServerOutputStream(os)
-          processUri(iws, session, u, httpRequest, sos, params)
-          sos.flush
+          val out = new ServerOutputStream(os)
+          processUri(iws, session, u, httpRequest, out, params)
+          out.flush
         }
       }
     }
@@ -145,7 +147,7 @@ trait Server extends Logging {
         ctx.resources(webRoot.toURI.toURL)
 
         ctx.filter(new Filter {
-          def init(filterConfig: FilterConfig) { }
+          def init(filterConfig: FilterConfig) {}
           def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
 
             val jettyRequest = request.asInstanceOf[org.eclipse.jetty.server.Request]
@@ -161,8 +163,6 @@ trait Server extends Logging {
           override def handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             try {
 
-
-              
               //val connection = HttpConnection.getCurrentConnection
               //val statusCode = connection.getResponse.getStatus
               //val reason = HttpStatus.getMessage(statusCode)              

@@ -25,20 +25,20 @@ class Form(val formFieldSets: FormFieldSet*) extends DisplayAttributes[Form] wit
       baseField
   }
 
-  def defaultRenderer(os: OutStream) {
+  def defaultRenderer(oc: OutputContext) {
     _label match {
       case None =>
-        forms.formStart(os)
+        forms.formStart(oc)
       case Some(label) =>
-        forms.formStartWithLabel(label)(os)
+        forms.formStartWithLabel(label)(oc)
     }
-    formFieldSets.foreach(_.render(os))
-    forms.formEnd(os)
+    formFieldSets.foreach(_.render(oc))
+    forms.formEnd(oc)
   }
 
-  override def render(os: OutStream) {
+  override def render(oc: OutputContext) {
     fieldTransformer.using(this) {
-      super.render(os)
+      super.render(oc)
     }
   }
 }

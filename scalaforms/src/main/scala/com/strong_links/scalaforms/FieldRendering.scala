@@ -1,10 +1,10 @@
 package com.strong_links.scalaforms
 
 trait FieldRendering {
-  def render(os: OutStream): Unit
-  def renderLabel(os: OutStream): Unit
-  def renderControl(os: OutStream): Unit
-  def renderHelp(os: OutStream): Unit
-  def renderError(os: OutStream): Unit
+  def render(oc: OutputContext): Unit
+  def renderLabel(oc: OutputContext): Unit
+  def renderControl(oc: OutputContext): Unit
+  def renderHelp(oc: OutputContext): Unit
+  def renderError(oc: OutputContext): Unit
 }
 

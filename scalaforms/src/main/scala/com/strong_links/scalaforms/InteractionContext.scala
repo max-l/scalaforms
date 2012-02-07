@@ -9,9 +9,14 @@ import javax.servlet.http.HttpServletRequest
 import com.sun.org.apache.xalan.internal.xsltc.compiler.Output
 import java.io.PrintWriter
 
+trait OutputContext {
+  val i18nLocale: I18nLocale
+  val out: ServerOutputStream
+}
+
 class InteractionContext(var iws: IdentityWithinServer, val server: Server,
-  val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], i18nLocale: I18nLocale, 
-  params: Map[String, Seq[String]], val out: ServerOutputStream) extends Logging {
+  val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], val i18nLocale: I18nLocale,
+  params: Map[String, Seq[String]], val out: ServerOutputStream) extends OutputContext with Logging {
 
   def <<(s: String) = out.write(s)
 
