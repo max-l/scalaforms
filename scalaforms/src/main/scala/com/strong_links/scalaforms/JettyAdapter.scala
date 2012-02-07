@@ -86,12 +86,8 @@ class JettyAdapter(server: Server) extends Logging {
           }
 
           s
-        } catch {
-          case e: Exception => {
-            println(e.printStackTrace)
-            throw e
-          }
-        }
+        } catch
+          Errors.fatalCatch("Error getting IdentityWithinServer.")
       }
     }
     jsm.setSessionIdManager(jism)

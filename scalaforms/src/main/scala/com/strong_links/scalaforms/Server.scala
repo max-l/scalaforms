@@ -93,9 +93,8 @@ trait Server extends Logging {
       fieldTransformer.using(identityFieldTransformer) {
         SqueryInteractionRunner.run(ctx)
       }
-    } catch {
-      case e: Exception => Errors.fatal(e)
-    }
+    } catch
+      Errors.fatalCatch("Processing URI _" << u.uri)
   }
 
   def executeInteractionRequest(isPost: Boolean, httpRequest: HttpRequest[HttpServletRequest], uri: String, params: Map[String, Seq[String]]) = {

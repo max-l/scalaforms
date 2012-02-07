@@ -21,9 +21,8 @@ class ServerOutputStream(os: OutputStream) {
       bytesWritten += b.length
       if (bytesWritten >= currentFlushStep.head)
         flush
-    } catch {
-      case t => Errors.fatal(t, "Output stream write failed on buffer size _" << b.length)
-    }
+    } catch
+      Errors.fatalCatch("Output stream write failed on buffer size _" << b.length)
   }
 
   def flush = {
