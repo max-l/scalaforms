@@ -2,20 +2,11 @@ package com.strong_links.scalaforms
 
 import com.strong_links.core._
 import com.strong_links.scalaforms._
+
 import unfiltered.request._
 import unfiltered.response._
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpSession
+import javax.servlet.http._
 import java.io._
-import org.eclipse.jetty.server.handler.ErrorHandler
-import org.eclipse.jetty.server.Request
-import javax.servlet.http.HttpServletResponse
-import org.eclipse.jetty.http.HttpStatus
-import javax.servlet.Filter
-import javax.servlet.FilterConfig
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.FilterChain
 import java.sql.Driver
 import org.slf4j.LoggerFactory
 
@@ -127,55 +118,24 @@ trait Server extends Logging {
 
   private[scalaforms] val jettyAdapter = new JettyAdapter(this)
 
-  def start(host: String, port: Int, staticContentDirectory: File, jdbcDriver: Driver, jdbcUrlWithUsernameAndPassword: String): Unit = {
+  def start(port: Int, host: String, staticResourceNodes: Seq[StaticResourceNode], jdbcDriver: Driver, jdbcUrlWithUsernameAndPassword: String): Unit = {
 
     Logging.setLogger(LoggerFactory.getLogger)
 
-    logInfo("Starting server on port _." <<< port)
-    val webRoot = staticContentDirectory.getCanonicalFile
-    logInfo("Static content directory _" <<< webRoot.getAbsolutePath)
+    logInfo("Starting server on port: _" <<< port)
+    logInfo("Static resource nodes: _" <<< staticResourceNodes)
 
-    unfiltered.jetty.Http(8080, host).
-      context(applicationWebroot) { c =>
-        jettyAdapter.init(c.current, port, host, jdbcDriver, jdbcUrlWithUsernameAndPassword)
-        c.filter(InteractionHandler)
-      }.
-      context(cometWebroot)(ctx => ComedDServerImpl.createBayeuxHandlerInto(ctx.current)).
-      context(anyWebroot)(ctx => {
+    val server = Unfiltered.makeServer(jettyAdapter, port, host, staticResourceNodes, jdbcDriver, jdbcUrlWithUsernameAndPassword)
 
-        ctx.resources(webRoot.toURI.toURL)
+    server.context(applicationWebroot) { ctx =>
+      jettyAdapter.init(ctx.current, port, host, jdbcDriver, jdbcUrlWithUsernameAndPassword)
+      ctx.filter(InteractionHandler)
+    }
 
-        ctx.filter(new Filter {
-          def init(filterConfig: FilterConfig) {}
-          def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+    server.context(cometWebroot) { ctx =>
+      ComedDServerImpl.createBayeuxHandlerInto(ctx.current)
+    }
 
-            val jettyRequest = request.asInstanceOf[org.eclipse.jetty.server.Request]
-
-            //jettyRequest.setServletPath(" mettre le path transforme ici ...")
-
-            chain.doFilter(request, response)
-          }
-          def destroy {}
-        })
-
-        ctx.current.setErrorHandler(new ErrorHandler {
-          override def handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-            try {
-
-              //val connection = HttpConnection.getCurrentConnection
-              //val statusCode = connection.getResponse.getStatus
-              //val reason = HttpStatus.getMessage(statusCode)              
-              //logError("ERROR serving static file : _, _ " << (statusCode, reason))
-
-              super.handle(target, baseRequest, request, response)
-            } catch {
-              case e: Exception => {
-                throw e
-              }
-            }
-          }
-        })
-      }).
-      run
+    server.run
   }
 }

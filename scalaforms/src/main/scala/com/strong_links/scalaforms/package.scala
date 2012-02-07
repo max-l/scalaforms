@@ -19,7 +19,6 @@ package object scalaforms {
 
   def applicationWebroot = "/int"
   def cometWebroot = "/comet"
-  def anyWebroot = "/"
 
   type Choices[A] = Option[Map[A, Option[String]]]
 
