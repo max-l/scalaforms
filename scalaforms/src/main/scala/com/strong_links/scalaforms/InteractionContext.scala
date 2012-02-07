@@ -17,11 +17,6 @@ trait OutputContext {
 class InteractionContext(var iws: IdentityWithinServer, val server: Server,
   val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], val i18nLocale: I18nLocale,
   params: Map[String, Seq[String]], val out: ServerOutputStream) extends OutputContext with Logging {
-=======
-  val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], val i18nLocale: I18nLocale, 
-  params: Map[String, Seq[String]], val out: ServerOutputStream) extends Logging {
-
-  def <<(s: String) = out.write(s)
 
   val allowed =
     iws.roleSet.allows(u.interactions.asInstanceOf[InteractionsEnabler[_]]) ||
