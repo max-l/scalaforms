@@ -28,23 +28,19 @@ trait Server extends Logging {
     allRoles.find(_.fqn == fqn).getOrElse(Errors.fatal("Unknown role _" << fqn))
 
   private object InteractionHandler extends unfiltered.filter.Plan {
+
+    object TrimSemicolon {
+      def unapply(s: String): Option[String] = Some(s.indexOf(';') match { case -1 => s; case x => s.substring(0, x) })
+    }
+
     def intent = {
       case httpRequest: HttpRequest[_] =>
-        val (isPost, path0, pars) = httpRequest match {
+        val (isPost, TrimSemicolon(path), params) = httpRequest match {
           case GET(Path(p) & Params(params)) => (false, p, params)
           case POST(Path(p) & Params(params)) => (true, p, params)
         }
 
-        val path = { // Jetty will encode the sessionId after ';' if it is not certain that the browser supports Cookies
-          // characters at the right of ';' are for Jetty only 
-          val i = path0.indexOf(';')
-          if (i == -1)
-            path0
-          else
-            path0.substring(0, i)
-        }
-
-        executeInteractionRequest(isPost, httpRequest, path, pars)
+        executeInteractionRequest(isPost, httpRequest, path, params)
     }
   }
 
