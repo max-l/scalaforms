@@ -15,20 +15,20 @@ abstract class BaseField[A](var internalValue: A, val domain: Domain[_]) extends
 
   // When we are dealing with basic fields, the only available rendering is the one displaying the value
   // itself.
-  def render(os: OutStream) {
-    os.write(Convert.toHtml(internalValue.toString))
+  def render(oc: OutputContext) {
+    oc.out.write(Convert.toHtml(internalValue.toString))
   }
 
-  def renderLabel(os: OutStream) {
+  def renderLabel(oc: OutputContext) {
   }
 
-  def renderControl(os: OutStream) {
+  def renderControl(oc: OutputContext) {
   }
 
-  def renderHelp(os: OutStream) {
+  def renderHelp(oc: OutputContext) {
   }
 
-  def renderError(os: OutStream) {
+  def renderError(oc: OutputContext) {
   }
 }
 

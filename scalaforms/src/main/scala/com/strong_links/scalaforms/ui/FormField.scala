@@ -5,13 +5,7 @@ import com.strong_links.core._
 import com.strong_links.scalaforms._
 import com.strong_links.scalaforms.templates.standard.forms
 
-object FormField {
-  val fieldSpacer = capture(forms.fieldSpacer(_))
-}
-
 class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] with FieldRendering {
-
-  import FormField._
 
   // Get the default attributes from the associated domain and their getters.
   private[ui] var _mandatory = field.domain.mandatory
@@ -98,28 +92,29 @@ class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] wi
     _solidaryFormField = None
   }
 
-  protected def defaultRenderer(os: OutStream) {
-    forms.field(field, fieldSpacer)(os)
+  protected def defaultRenderer(oc: OutputContext) {
+//    forms.field1(field)(oc)
+//    forms.field2(oc)
+//    forms.field3(field)(oc)
   }
 
-  def renderLabel(os: OutStream) {
+  def renderLabel(oc: OutputContext) {
     _label match {
       case None =>
-      case Some(label) =>
-        forms.fieldLabelFor(label, inputId)(os)
+      //case Some(label) => forms.fieldLabelFor(label, inputId)(oc)
     }
   }
 
-  def renderControl(os: OutStream) {
-    os.write(Convert.toHtml("Control for form field _" << this))
+  def renderControl(oc: OutputContext) {
+    oc.out.write(Convert.toHtml("Control for form field _" << this))
   }
 
-  def renderHelp(os: OutStream) {
-    os.write(Convert.toHtml("Help for form field _" << this))
+  def renderHelp(oc: OutputContext) {
+    oc.out.write(Convert.toHtml("Help for form field _" << this))
   }
 
-  def renderError(os: OutStream) {
-    os.write(Convert.toHtml("Error for form field _" << this))
+  def renderError(oc: OutputContext) {
+    oc.out.write(Convert.toHtml("Error for form field _" << this))
   }
 }
 

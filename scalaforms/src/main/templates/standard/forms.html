@@ -4,7 +4,7 @@
 
 <!-- def formStartWithLabel($label) -->
 
-<h3>$label</h3>
+<h3>$label:i18n</h3>
 <form>
 
 <!-- def formEnd -->
@@ -17,15 +17,11 @@
 
 <!-- def fieldSetStartWithLabel($label) -->
 
-<fieldset><legend>$label:raw</legend>
+<fieldset><legend>$label:i18n</legend>
 
 <!-- def beforeFields -->
 
 <table>
-
-<!-- def fieldSpacer -->
-
-<td>&nbsp;&nbsp;</td>
 
 <!-- def fieldLabel($label) -->
 
@@ -33,11 +29,19 @@
 
 <!-- def fieldLabelFor($label, $inputFieldId) -->
 
-<label for="$inputFieldId">$label</label>
+<label for="$inputFieldId">$label:i18n</label>
 
-<!-- def `field`($f, $spacer) -->
+<!-- def field1($f) -->
 
-<tr><td>$f:label</td>$spacer:raw<td>$f:control</td></tr>
+<tr><td>$f:label</td>
+
+<!-- def field2 -->
+
+<td>&nbsp;&nbsp;</td>
+
+<!-- def field3($f) -->
+
+<td>$f:control</td></tr>
 
 <!-- def afterFields -->
 

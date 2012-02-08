@@ -13,11 +13,14 @@ import javax.servlet.http.HttpSession
 
 
 
-class InteractionContext(var iws: IdentityWithinServer, val server: Server,
-  val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], val i18nLocale: I18nLocale, 
-  params: Map[String, Seq[String]], val out: ServerOutputStream) extends Logging {
+trait OutputContext {
+  val i18nLocale: I18nLocale
+  val out: ServerOutputStream
+}
 
-  def <<(s: String) = out.write(s)
+class InteractionContext(var iws: IdentityWithinServer, val server: Server,
+  val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], val i18nLocale: I18nLocale,
+  params: Map[String, Seq[String]], val out: ServerOutputStream) extends OutputContext with Logging {
 
   val allowed =
     iws.roleSet.allows(u.interactions.asInstanceOf[InteractionsEnabler[_]]) ||
@@ -34,11 +37,11 @@ class InteractionContext(var iws: IdentityWithinServer, val server: Server,
   def currentIdendityUsername = iws.systemAccount.username.value
 
   def login(username: String) {
-    iws = SqueryInteractionRunner.login(username, this)
+    iws = server.identityManager.login(username, this)
   }
 
   def logout {
-    SqueryInteractionRunner.logout(this)
+    server.identityManager.logout(this)
   }
 }
 

@@ -9,16 +9,145 @@ import org.squeryl.SessionFactory
 import org.squeryl.Session
 import org.squeryl.adapters.H2Adapter
 import javax.servlet.http.HttpSession
+import unfiltered.request.HttpRequest
+import javax.servlet.http.HttpServletRequest
+import java.io.OutputStream
+import unfiltered.response._
+import org.eclipse.jetty.server.session.SessionHandler
+import org.eclipse.jetty.server.session.JDBCSessionIdManager
+import org.eclipse.jetty.server.session.JDBCSessionManager
+import scala.collection.mutable.HashMap
+import org.eclipse.jetty.servlet.ServletContextHandler
 
-object SqueryInteractionRunner extends Logging {
+class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driver, jdbcUrl: String, server: Server) 
+  extends IdentityManager with Logging {
 
+  override def init(ctx: ServletContextHandler) {
+
+    val jism = new JDBCSessionIdManager(ctx.getServer)
+
+    jism.setWorkerName(host + "_" + port) // this is the cluster node name (must be unique within cluster) 
+
+    jism.setDriverInfo(jdbcDriver, jdbcUrl)
+    jism.setScavengeInterval(60)
+    ctx.getServer.setSessionIdManager(jism)
+
+    val jsm = new JDBCSessionManager {
+
+      override def updateSession(data: org.eclipse.jetty.server.session.JDBCSessionManager#SessionData) = {
+
+        val sid = data.getId
+        val session = this.getSession(sid)
+        val aMap = getSessionAttributeMap(session)
+        // avoid saving the SessionAttributeMap as a blob in the DB
+        try {
+          logDebug("will update session _" << data)
+          // set it to null before save
+          session.setAttribute(AUTHENTICATION_ATTRIBUTE_KEY, null)
+          super.updateSession(data)
+        } finally {
+          // restore it after
+          session.setAttribute(AUTHENTICATION_ATTRIBUTE_KEY, aMap)
+        }
+      }
+
+      override def getSession(idInCluster: String): JDBCSessionManager#Session = {
+
+        val s = super.getSession(idInCluster)
+        if (s == null)
+          return null
+
+        if (sessionAuthenticationsLoaded(s))
+          return s
+
+        try {
+          import com.strong_links.scalaforms.squeryl.SquerylFacade._
+          val iwss = transaction {
+            load(s, server)
+          }
+
+          for (iws <- iwss) {
+            logDebug("Identity _ loaded from database into http session." << iws)
+            getSessionAttributeMap(s).put(iws.authentication.rootAuthenticationUuid.value, iws)
+          }
+
+          s
+        } catch
+          Errors.fatalCatch("Error getting IdentityWithinServer.")
+      }
+    }
+    jsm.setSessionIdManager(jism)
+    jsm.setMaxInactiveInterval(60 * 5)
+    val sh = new SessionHandler(jsm)
+    ctx.setSessionHandler(sh);
+  }
+  
+
+  private def lookupIdentity(httpRequest: HttpRequest[HttpServletRequest], receivedAuthIds: Option[Seq[String]], server: Server) = {
+
+    val session = httpRequest.underlying.getSession(true): HttpSession
+    
+    val receivedAuthId = receivedAuthIds match {
+      case None => None
+      case Some(Seq(aId)) => Some(aId)
+      case Some(seq) => Errors.fatal("More than one authId was received (_)." << seq.length)
+      case someJunk => Errors.fatal("Invalid authId _." << someJunk)
+    }
+
+    val (needsRedirect, iws) =
+      (session.isNew, receivedAuthId) match {
+        case (true, None) =>
+          (true, createAnonymous(session, server))
+        case (true, Some(aId)) =>
+          Errors.fatal("Invalid or expired authentication _." << aId)
+        case (false, None) =>
+          (true, createAnonymous(session, server))
+        case (false, Some(aId)) =>
+          (false, recoverExistingIdentityWithinServer(session, aId, server))
+      }
+
+    (needsRedirect, iws)
+  }
+  
+  private def recoverExistingIdentityWithinServer(session: HttpSession, authenticationId: String, server: Server) =
+    getIdentity(session, authenticationId).getOrElse(Errors.fatal("Unknown authId _." << authenticationId))
+  
+  def executeInteractionRequest(
+      isPost: Boolean, 
+      httpRequest: HttpRequest[HttpServletRequest], 
+      extractedUri: UriExtracter, 
+      params: Map[String, Seq[String]], 
+      server: Server,
+      createInteractionContext: (IdentityWithinServer, ServerOutputStream) => InteractionContext,
+      invokeInteraction: InteractionContext => Unit) = {
+
+    
+    val (needsRedirect, iws) = inTransaction {
+      lookupIdentity(httpRequest, params.get("authId"), server)
+    }
+
+    logDebug("Identity is '_'." << iws)
+
+    if (needsRedirect)
+      Redirect("_?authId=_" << (extractedUri.uri, iws.authentication.rootAuthenticationUuid.value))
+    else {
+      new ResponseStreamer {
+        def stream(os: OutputStream) {
+          val out = new ServerOutputStream(os)          
+          val ic = createInteractionContext(iws, out)
+          run(ic, invokeInteraction)
+          out.flush
+        }
+      }
+    }
+  }
+  
+  /**
+   * This will behave as an 'act as' is already logged in 
+   */
   def login(username: String, ic: InteractionContext) =
     authenticateWithNewIdentity(ic.iws, username, ic.server)
 
-  def actAs(username: String, ic: InteractionContext) {
-    ic.iws = authenticateWithNewIdentity(ic.iws, username, ic.server)
-  }
-    
   def logout(ic: InteractionContext) {
 
     val iws = ic.iws
@@ -42,7 +171,7 @@ object SqueryInteractionRunner extends Logging {
           getOrElse(Errors.fatal("Found no previous authentication for rootAuthenticationUuid = _, while logging out of authentication.id=_.) "
             << (rootAuth, iws.authentication.id)))
 
-      ic.server.jettyAdapter.setIdentity(iws.session, previousIws)
+      setIdentity(iws.session, previousIws)
 
       logDebug("Authentication _ ended, replaced by '_'." << (iws, previousIws))
 
@@ -55,7 +184,7 @@ object SqueryInteractionRunner extends Logging {
     }
   }  
 
-  def createAnonymous(session: HttpSession, server: Server): IdentityWithinServer =
+  private def createAnonymous(session: HttpSession, server: Server): IdentityWithinServer =
     create(session, Schema.anonymousAccountId, Util.newGuid, server)
 
   private def authenticateWithNewIdentity(currentIdentity: IdentityWithinServer, username: String, server: Server): IdentityWithinServer = {
@@ -95,7 +224,7 @@ object SqueryInteractionRunner extends Logging {
     Schema.authentications.insert(a)
 
     val iws = new IdentityWithinServer(session, a, sa, Schema.users.get(sa.userId.value), new RoleSet(roles))
-    server.jettyAdapter.setIdentity(session, iws)
+    setIdentity(session, iws)
 
     logDebug("New authentication : _." << iws)
 
@@ -126,7 +255,7 @@ object SqueryInteractionRunner extends Logging {
         select ((u, a, sa)))
   }
 
-  def load(session: HttpSession, server: Server) = {
+  private def load(session: HttpSession, server: Server) = {
 
     val authenticationsForSession = identitiesForSession(session.getId).toSeq
 
@@ -139,7 +268,7 @@ object SqueryInteractionRunner extends Logging {
     }
   }
   
-  private [scalaforms] def run(ic: InteractionContext) {
+  private def run(ic: InteractionContext, invokeInteraction: InteractionContext => Unit) {
 
 
     val tx = transaction {
@@ -164,15 +293,15 @@ object SqueryInteractionRunner extends Logging {
     
     try 
       transaction {
-        val interaction = ic.u.invoke(ic)
-        val results = interaction.process(ic)
+      
+        invokeInteraction(ic)
+
         update(Schema.transactions)(t =>
           where(t.id === tx.id)
           set(t.status  := CompletionStatusDomain.Success,                      
               t.endTime := Some(nowTimestamp)               
           )
         )
-        results
       }
     catch {
       case e: Exception => transaction {
@@ -187,7 +316,37 @@ object SqueryInteractionRunner extends Logging {
       }
       throw e
     }    
-  } 
+  }
+  
+  
+  
+
+  private val AUTHENTICATION_ATTRIBUTE_KEY = "ROOT_AUTHENTICATION_KEY"
+
+  private def sessionAuthenticationsLoaded(s: HttpSession) =
+    s.getAttribute(AUTHENTICATION_ATTRIBUTE_KEY) != null
+
+  private def setIdentity(s: HttpSession, iws: IdentityWithinServer) {
+
+    getSessionAttributeMap(s).put(iws.authentication.rootAuthenticationUuid.value, iws)
+  }
+
+  private def getIdentity(s: HttpSession, rootAuthenticationId: String) =
+    getSessionAttributeMap(s).get(rootAuthenticationId)
+
+  private def getSessionAttributeMap(s: HttpSession): HashMap[String, IdentityWithinServer] = {
+
+    val o = s.getAttribute(AUTHENTICATION_ATTRIBUTE_KEY)
+    if (o != null)
+      o.asInstanceOf[HashMap[String, IdentityWithinServer]]
+    else {
+      val tmp = new HashMap[String, IdentityWithinServer]
+      s.setAttribute(AUTHENTICATION_ATTRIBUTE_KEY, tmp)
+
+      tmp
+    }
+  }
+  
 }
 
   

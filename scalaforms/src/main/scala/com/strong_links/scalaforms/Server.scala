@@ -2,25 +2,17 @@ package com.strong_links.scalaforms
 
 import com.strong_links.core._
 import com.strong_links.scalaforms._
+
 import unfiltered.request._
 import unfiltered.response._
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpSession
+import javax.servlet.http._
 import java.io._
-import org.eclipse.jetty.server.handler.ErrorHandler
-import org.eclipse.jetty.server.Request
-import javax.servlet.http.HttpServletResponse
-import org.eclipse.jetty.http.HttpStatus
-import javax.servlet.Filter
-import javax.servlet.FilterConfig
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.FilterChain
 import java.sql.Driver
 import org.slf4j.LoggerFactory
 
 trait Server extends Logging {
-
+ outer =>
+   
   def activeRoles: Seq[Role]
 
   /**
@@ -41,147 +33,86 @@ trait Server extends Logging {
   private[scalaforms] def roleForFqn(fqn: String) =
     allRoles.find(_.fqn == fqn).getOrElse(Errors.fatal("Unknown role _" << fqn))
 
-  private object InteractionHandler extends unfiltered.filter.Plan {
+  protected def createIdentityManager: IdentityManager
+  
+  private lazy val _identityManager = createIdentityManager
+  
+  def identityManager = _identityManager
+
+  private object InteractionHandler extends  unfiltered.filter.Plan {
+
+    object TrimSemicolon {
+      def unapply(s: String): Option[String] = Some(s.indexOf(';') match { case -1 => s; case x => s.substring(0, x) })
+    }
+
     def intent = {
       case httpRequest: HttpRequest[_] =>
-        val (isPost, path0, pars) = httpRequest match {
+        val (isPost, TrimSemicolon(path), params) = httpRequest match {
           case GET(Path(p) & Params(params)) => (false, p, params)
           case POST(Path(p) & Params(params)) => (true, p, params)
         }
 
-        val path = { // Jetty will encode the sessionId after ';' if it is not certain that the browser supports Cookies
-          // characters at the right of ';' are for Jetty only 
-          val i = path0.indexOf(';')
-          if (i == -1)
-            path0
-          else
-            path0.substring(0, i)
-        }
-
-        executeInteractionRequest(isPost, httpRequest, path, pars)
+        logInfo("Intercepting URI '_'." << path)
+        
+        val ux = new UriExtracter(path)
+        
+        _identityManager.executeInteractionRequest(isPost, httpRequest, ux, params, outer, 
+          createInteractionContext = { (iws, sos) =>
+            
+            try {
+        
+              var i18nLocale = iws.systemAccount.preferredI18nLocale
+              i18nLocale = I18nStock.fr_CA
+              println("Serving request with locale _." << i18nLocale)
+              new InteractionContext(iws, outer, ux, httpRequest, i18nLocale, params, sos)
+            } 
+            catch {
+              Errors.fatalCatch("Processing URI _" << path)
+            }
+          }, 
+          invokeInteraction = { ic =>
+            val interaction = ic.u.invoke(ic)
+            
+            fieldTransformer.using(identityFieldTransformer) {
+              interaction.process(ic) 
+            }
+          }
+        )
     }
   }
 
-  private def lookupIdentity(httpRequest: HttpRequest[HttpServletRequest], receivedAuthIds: Option[Seq[String]]) = {
-
-    val session = httpRequest.underlying.getSession(true): HttpSession
-    
-    val receivedAuthId = receivedAuthIds match {
-      case None => None
-      case Some(Seq(aId)) => Some(aId)
-      case Some(seq) => Errors.fatal("More than one authId was received (_)." << seq.length)
-      case someJunk => Errors.fatal("Invalid authId _." << someJunk)
-    }
-
-    val (needsRedirect, iws) =
-      (session.isNew, receivedAuthId) match {
-        case (true, None) =>
-          (true, SqueryInteractionRunner.createAnonymous(session, this))
-        case (true, Some(aId)) =>
-          Errors.fatal("Invalid or expired authentication _." << aId)
-        case (false, None) =>
-          (true, SqueryInteractionRunner.createAnonymous(session, this))
-        case (false, Some(aId)) =>
-          (false, jettyAdapter.getIdentity(session, aId).getOrElse(Errors.fatal("Unknown authId _." << aId)))
-      }
-
-    (needsRedirect, iws)
-  }
-
-  def processUri(iws: IdentityWithinServer, u: UriExtracter,
-    httpRequest: HttpRequest[HttpServletRequest], sos: ServerOutputStream, params: Map[String, Seq[String]]) {
+  def createInteractionContext(iws: IdentityWithinServer, u: UriExtracter,
+    httpRequest: HttpRequest[HttpServletRequest], sos: ServerOutputStream, params: Map[String, Seq[String]]) = {
     try {
-      
-      val ctx = new InteractionContext(iws, this, u, httpRequest, iws.systemAccount.preferredI18nLocale, params, sos)
-      
-      fieldTransformer.using(identityFieldTransformer) {
-        SqueryInteractionRunner.run(ctx)
-      }
-    }
-    catch {
-      case e: Exception => Errors.fatal(e)
-    }
-  }
 
-  def executeInteractionRequest(isPost: Boolean, httpRequest: HttpRequest[HttpServletRequest], uri: String, params: Map[String, Seq[String]]) = {
-
-    logInfo("Intercepting URI '_'." << uri)
-
-    val u = new UriExtracter(uri)
-
-    import com.strong_links.scalaforms.squeryl.SquerylFacade._
-    val (needsRedirect, iws) = inTransaction {
-      lookupIdentity(httpRequest, params.get("authId"))
-    }
-
-    logDebug("Identity is '_'." << iws)
-
-    if (needsRedirect)
-      Redirect("_?authId=_" << (uri, iws.authentication.rootAuthenticationUuid.value))
-    else {
-      new ResponseStreamer {
-        def stream(os: OutputStream) {
-          val sos = new ServerOutputStream(os)
-          processUri(iws, u, httpRequest, sos, params)
-          sos.flush
-        }
-      }
-    }
+      var i18nLocale = iws.systemAccount.preferredI18nLocale
+      i18nLocale = I18nStock.fr_CA
+      println("Serving request with locale _." << i18nLocale)
+      new InteractionContext(iws, this, u, httpRequest, i18nLocale, params, sos)
+    } catch
+      Errors.fatalCatch("Processing URI _" << u.uri)
   }
 
   private[scalaforms] val jettyAdapter = new JettyAdapter(this)
 
-  def start(host: String, port: Int, staticContentDirectory: File, jdbcDriver: Driver, jdbcUrlWithUsernameAndPassword: String): Unit = {
+  def start(port: Int, host: String, staticResourceNodes: Seq[StaticResourceNode]): Unit = {
 
     Logging.setLogger(LoggerFactory.getLogger)
 
-    logInfo("Starting server on port _." <<< port)
-    val webRoot = staticContentDirectory.getCanonicalFile
-    logInfo("Static content directory _" <<< webRoot.getAbsolutePath)
+    logInfo("Starting server on port: _" <<< port)
+    logInfo("Static resource nodes: _" <<< staticResourceNodes)
 
-    unfiltered.jetty.Http(8080, host).
-      context(applicationWebroot) { c =>
-        jettyAdapter.init(c.current, port, host, jdbcDriver, jdbcUrlWithUsernameAndPassword)
-        c.filter(InteractionHandler)
-      }.
-      context(cometWebroot)(ctx => ComedDServerImpl.createBayeuxHandlerInto(ctx.current)).
-      context(anyWebroot)(ctx => {
+    val server = Unfiltered.makeServer(jettyAdapter, port, host, staticResourceNodes)
 
-        ctx.resources(webRoot.toURI.toURL)
+    server.context(applicationWebroot) { ctx =>
+      _identityManager.init(ctx.current)
+      ctx.filter(InteractionHandler)
+    }
 
-        ctx.filter(new Filter {
-          def init(filterConfig: FilterConfig) { }
-          def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
+    server.context(cometWebroot) { ctx =>
+      ComedDServerImpl.createBayeuxHandlerInto(ctx.current)
+    }
 
-            val jettyRequest = request.asInstanceOf[org.eclipse.jetty.server.Request]
-
-            //jettyRequest.setServletPath(" mettre le path transforme ici ...")
-
-            chain.doFilter(request, response)
-          }
-          def destroy {}
-        })
-
-        ctx.current.setErrorHandler(new ErrorHandler {
-          override def handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-            try {
-
-
-              
-              //val connection = HttpConnection.getCurrentConnection
-              //val statusCode = connection.getResponse.getStatus
-              //val reason = HttpStatus.getMessage(statusCode)              
-              //logError("ERROR serving static file : _, _ " << (statusCode, reason))
-
-              super.handle(target, baseRequest, request, response)
-            } catch {
-              case e: Exception => {
-                throw e
-              }
-            }
-          }
-        })
-      }).
-      run
+    server.run
   }
 }

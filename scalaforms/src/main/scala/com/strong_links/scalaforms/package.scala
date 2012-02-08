@@ -7,7 +7,7 @@ import java.io._
 
 package object scalaforms {
 
-  type RenderingFunction = OutStream => Unit
+  type RenderingFunction = OutputContext => Unit
 
   def nowDate = new java.util.Date
 
@@ -19,7 +19,6 @@ package object scalaforms {
 
   def applicationWebroot = "/int"
   def cometWebroot = "/comet"
-  def anyWebroot = "/"
 
   type Choices[A] = Option[Map[A, Option[String]]]
 
@@ -47,12 +46,6 @@ package object scalaforms {
   implicit def interactionFunction2Permission(f: Function20[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, InteractionContext => Interaction]) = Permission.makeMethodPermission(f)
   implicit def interactionFunction2Permission(f: Function21[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, InteractionContext => Interaction]) = Permission.makeMethodPermission(f)
   implicit def interactionFunction2Permission(f: Function22[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, InteractionContext => Interaction]) = Permission.makeMethodPermission(f)
-
-  def capture(code: => RenderingFunction) = {
-    val sos = new StringOutputStream
-    code(sos)
-    sos.get
-  }
 
   //object interactionContext extends ThreadLocalStack[InteractionContext]
 

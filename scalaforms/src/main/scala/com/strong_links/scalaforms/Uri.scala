@@ -6,7 +6,7 @@ import java.lang.reflect.Method
 
 object Uri {
   def apply(method: Method, args: Array[Object], ic: Option[InteractionContext]): String = {
-    
+
     val className = {
       val cn = method.getDeclaringClass.getCanonicalName;
       if (cn.endsWith("$")) cn.substring(0, cn.length - 1) else cn
@@ -47,12 +47,14 @@ class UriExtracter(val uri: String) {
   }
   def extractInformation = {
     val (webRootPath, className, methodName, args) = splitUri(uri)
+    val fullClassName = className + "$"
     val c = try {
-      Class.forName(className + "$")
+      Class.forName(fullClassName)
     } catch {
       case e: ClassNotFoundException =>
         Errors.fatal("Interactions _ not callable from http, make sure it is extended by an InteractionsEnabler[__] object.\n_"
           << (className, e.getMessage))
+      case t => Errors.fatal(t, "Unexpected exception loading class _." << fullClassName)
     }
     val interactions = c.getField("MODULE$").get(null).asInstanceOf[Interactions]
     val matchingMethodList = c.getMethods.filter(_.getName == methodName)

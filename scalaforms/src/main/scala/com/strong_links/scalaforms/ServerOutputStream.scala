@@ -1,18 +1,18 @@
 package com.strong_links.scalaforms
 
 import com.strong_links.core._
-import java.io._
+import java.io.OutputStream
 
 object ServerOutputStream {
   val flushSteps = List(500, 1000, 2000, 5000, 10000, 25000, 50000, 100000)
 }
 
-class ServerOutputStream(os: OutputStream) extends OutStream {
+class ServerOutputStream(os: OutputStream) {
 
   import ServerOutputStream._
 
-  var bytesWritten = 0L
-  var currentFlushStep = flushSteps
+  private var bytesWritten = 0L
+  private var currentFlushStep = flushSteps
 
   def write(s: String) {
     val b = s.getBytes("UTF8")
@@ -21,9 +21,8 @@ class ServerOutputStream(os: OutputStream) extends OutStream {
       bytesWritten += b.length
       if (bytesWritten >= currentFlushStep.head)
         flush
-    } catch {
-      case e: Exception => Errors.fatal(e, "Output stream write failed on buffer size _" << b.length)
-    }
+    } catch
+      Errors.fatalCatch("Output stream write failed on buffer size _" << b.length)
   }
 
   def flush = {
