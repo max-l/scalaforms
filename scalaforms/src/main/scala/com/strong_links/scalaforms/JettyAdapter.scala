@@ -77,7 +77,7 @@ class JettyAdapter(server: Server) extends Logging {
         try {
           import com.strong_links.scalaforms.squeryl.SquerylFacade._
           val iwss = transaction {
-            IdentityWithinServer.load(s, server)
+            SqueryInteractionRunner.load(s, server)
           }
 
           for (iws <- iwss) {

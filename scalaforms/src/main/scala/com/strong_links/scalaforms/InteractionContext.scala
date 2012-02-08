@@ -1,6 +1,7 @@
 package com.strong_links.scalaforms
 
 import com.strong_links.core._
+
 import com.strong_links.scalaforms.schema._
 import com.strong_links.scalaforms.squeryl.SquerylFacade._
 import javax.servlet.http.HttpSession
@@ -8,6 +9,9 @@ import unfiltered.request._
 import javax.servlet.http.HttpServletRequest
 import com.sun.org.apache.xalan.internal.xsltc.compiler.Output
 import java.io.PrintWriter
+import javax.servlet.http.HttpSession
+
+
 
 class InteractionContext(var iws: IdentityWithinServer, val server: Server,
   val u: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], val i18nLocale: I18nLocale, 
@@ -29,45 +33,12 @@ class InteractionContext(var iws: IdentityWithinServer, val server: Server,
 
   def currentIdendityUsername = iws.systemAccount.username.value
 
-  def actAs(username: String) {
-
-    iws = IdentityWithinServer.authenticateWithNewIdentity(iws, username, server)
-  }
-
   def login(username: String) {
-    iws = IdentityWithinServer.authenticateWithNewIdentity(iws, username, server)
+    iws = SqueryInteractionRunner.login(username, this)
   }
 
   def logout {
-
-    update(Schema.authentications)(a =>
-      where(a.id === iws.authentication.id)
-        set (a.endTime := Some(nowTimestamp)))
-
-    if (iws.authentication.isAnonymous) {
-      iws.session.invalidate()
-    } else {
-
-      val rootAuth = authId
-
-      val previousSession = iws.session
-
-      val previousIws =
-        IdentityWithinServer.lastActiveIdentityFor(iws.session, rootAuth, server).
-          getOrElse(Errors.fatal("Found no previous authentication for rootAuthenticationUuid = _, while logging out of authentication.id=_.) "
-            << (rootAuth, iws.authentication.id)))
-
-      server.jettyAdapter.setIdentity(iws.session, previousIws)
-
-      logDebug("Authentication _ ended, replaced by '_'." << (iws, previousIws))
-
-      iws = previousIws
-
-      val newSession = iws.session
-
-      if (previousSession != newSession)
-        Errors.fatal("Session has changed from _ to _." << (previousSession, newSession))
-    }
+    SqueryInteractionRunner.logout(this)
   }
 }
 

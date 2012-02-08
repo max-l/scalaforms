@@ -23,6 +23,11 @@ trait Server extends Logging {
 
   def activeRoles: Seq[Role]
 
+  /**
+   * The admin role is no different than others, except that generally permission giving
+   * actions should be exclusive to this role, it is exposed in this (Server) trait
+   * mainly to force applicative code to designate a role as being 'administrative'.
+   */  
   def adminRole: Role
 
   def anonymousRole: Role
@@ -57,8 +62,10 @@ trait Server extends Logging {
     }
   }
 
-  private def lookupIdentity(session: HttpSession, receivedAuthIds: Option[Seq[String]]) = {
+  private def lookupIdentity(httpRequest: HttpRequest[HttpServletRequest], receivedAuthIds: Option[Seq[String]]) = {
 
+    val session = httpRequest.underlying.getSession(true): HttpSession
+    
     val receivedAuthId = receivedAuthIds match {
       case None => None
       case Some(Seq(aId)) => Some(aId)
@@ -69,11 +76,11 @@ trait Server extends Logging {
     val (needsRedirect, iws) =
       (session.isNew, receivedAuthId) match {
         case (true, None) =>
-          (true, IdentityWithinServer.createAnonymous(session, this))
+          (true, SqueryInteractionRunner.createAnonymous(session, this))
         case (true, Some(aId)) =>
           Errors.fatal("Invalid or expired authentication _." << aId)
         case (false, None) =>
-          (true, IdentityWithinServer.createAnonymous(session, this))
+          (true, SqueryInteractionRunner.createAnonymous(session, this))
         case (false, Some(aId)) =>
           (false, jettyAdapter.getIdentity(session, aId).getOrElse(Errors.fatal("Unknown authId _." << aId)))
       }
@@ -81,7 +88,7 @@ trait Server extends Logging {
     (needsRedirect, iws)
   }
 
-  def processUri(iws: IdentityWithinServer, session: HttpSession, u: UriExtracter,
+  def processUri(iws: IdentityWithinServer, u: UriExtracter,
     httpRequest: HttpRequest[HttpServletRequest], sos: ServerOutputStream, params: Map[String, Seq[String]]) {
     try {
       
@@ -102,11 +109,9 @@ trait Server extends Logging {
 
     val u = new UriExtracter(uri)
 
-    val session = httpRequest.underlying.getSession(true): HttpSession
-
     import com.strong_links.scalaforms.squeryl.SquerylFacade._
     val (needsRedirect, iws) = inTransaction {
-      lookupIdentity(session, params.get("authId"))
+      lookupIdentity(httpRequest, params.get("authId"))
     }
 
     logDebug("Identity is '_'." << iws)
@@ -117,7 +122,7 @@ trait Server extends Logging {
       new ResponseStreamer {
         def stream(os: OutputStream) {
           val sos = new ServerOutputStream(os)
-          processUri(iws, session, u, httpRequest, sos, params)
+          processUri(iws, u, httpRequest, sos, params)
           sos.flush
         }
       }
