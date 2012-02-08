@@ -25,8 +25,7 @@ class InteractionContext(var iws: IdentityWithinServer, val server: Server,
   if (!allowed)
     Errors.fatal("Interaction _ not allowed for user _." << (u.uri, iws.systemAccount.username.value))
 
-  override def toString =
-    iws.toString
+  override def toString = iws.toString
 
   def authId = iws.authentication.rootAuthenticationUuid.value
 

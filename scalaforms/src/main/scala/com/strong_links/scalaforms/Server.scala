@@ -107,6 +107,7 @@ trait Server extends Logging {
           val out = new ServerOutputStream(os)
           processUri(iws, session, u, httpRequest, out, params)
           out.flush
+          os.close
         }
       }
     }

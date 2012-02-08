@@ -5,7 +5,7 @@ import com.strong_links.core._
 import java.lang.reflect.Method
 
 object Uri {
-  def apply(method: Method, args: Array[Object], ic: Option[InteractionContext]): String = {
+  def apply(method: Method, args: Array[Object], ic: InteractionContext): String = {
 
     val className = {
       val cn = method.getDeclaringClass.getCanonicalName;
@@ -13,9 +13,18 @@ object Uri {
     }
     if (!applicationWebroot.startsWith("/"))
       Errors.fatal("Constant applicationWebroot does not start with a /.")
-    val x = List(applicationWebroot, className, method.getName).mkString("/")
-    (if (args.length == 0) x else x + "/" + args.toList.mkString("/")) +
-      (if (ic.isDefined) "?authId=" + ic.get.authId else "")
+    val b = new StringBuilder
+    b.append(applicationWebroot)
+    b += '/'
+    b.append(className)
+    b += '/'
+    b.append(method.getName)
+    args.foreach(a => { b += '/'; b.append(a) })
+    if (ic != null) {
+      b.append("?authId=")
+      b.append(ic.authId)
+    }
+    b.toString
   }
 }
 
@@ -82,7 +91,7 @@ class UriExtracter(val uri: String) {
     z(ic)
   }
 
-  def toUri(ic: InteractionContext) = Uri(method, args, Option(ic))
+  def toUri(ic: InteractionContext) = Uri(method, args, ic)
 
   def fqn =
     method.getDeclaringClass.getCanonicalName + "." +

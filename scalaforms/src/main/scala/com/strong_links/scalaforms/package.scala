@@ -7,6 +7,8 @@ import java.io._
 
 package object scalaforms {
 
+  type InteractionDefinition = InteractionContext => Interaction
+
   type RenderingFunction = OutputContext => Unit
 
   def nowDate = new java.util.Date
