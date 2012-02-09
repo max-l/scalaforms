@@ -16,16 +16,10 @@ trait OutputContext {
   val out: ServerOutputStream
 }
 
-class InteractionContext(var iws: IdentityWithinServer, val server: Server,
+class InteractionContext(var iws: IdentityWithinServer, val identityManager: IdentityManager,
   val uriExtracter: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], val i18nLocale: I18nLocale,
-  params: Map[String, Seq[String]], val out: ServerOutputStream) extends OutputContext with Logging {
+  params: Map[String, Seq[String]], val out: ServerOutputStream) extends OutputContext {
 
-  val allowed =
-    iws.roleSet.allows(uriExtracter.interactions.asInstanceOf[InteractionsEnabler[_]]) ||
-      iws.roleSet.allows(uriExtracter.method)
-
-  if (!allowed)
-    Errors.fatal("Interaction _ not allowed for user _." << (uriExtracter.uri, iws.systemAccount.username.value))
 
   override def toString = iws.toString
 
@@ -34,11 +28,11 @@ class InteractionContext(var iws: IdentityWithinServer, val server: Server,
   def currentIdendityUsername = iws.systemAccount.username.value
 
   def login(username: String) {
-    iws = server.identityManager.login(username, this)
+    iws = identityManager.login(username, this)
   }
 
   def logout {
-    server.identityManager.logout(this)
+    identityManager.logout(this)
   }
 }
 

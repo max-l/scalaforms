@@ -11,7 +11,8 @@ import java.sql.Driver
 import org.slf4j.LoggerFactory
 
 trait Server extends Logging {
-  outer =>
+ outer =>
+
 
   def activeRoles: Seq[Role]
 
@@ -59,11 +60,12 @@ trait Server extends Logging {
 
         val ux = new UriExtracter(path)
 
-        _identityManager.executeInteractionRequest(isPost, httpRequest, ux, params, outer,
+        _identityManager.executeInteractionRequest(isPost, httpRequest, ux, params, 
           createInteractionContext = { (iws, sos) =>
             Errors.trap("Creating interaction context for URI _" << originalPath) {
               val i18nLocale = iws.systemAccount.preferredI18nLocale
-              new InteractionContext(iws, outer, ux, httpRequest, i18nLocale, params, sos)
+              new InteractionContext(iws, _identityManager, ux, httpRequest, i18nLocale, params, sos)
+
             }
           },
           invokeInteraction = { ic =>
@@ -77,7 +79,6 @@ trait Server extends Logging {
     }
   }
 
-  private[scalaforms] val jettyAdapter = new JettyAdapter(this)
 
   def start(port: Int, host: String, staticResourceNodes: Seq[StaticResourceNode]): Unit = {
 
@@ -86,7 +87,7 @@ trait Server extends Logging {
     logInfo("Starting server on port: _" <<< port)
     logInfo("Static resource nodes: _" <<< staticResourceNodes)
 
-    val server = Unfiltered.makeServer(jettyAdapter, port, host, staticResourceNodes)
+    val server = Unfiltered.makeServer(port, host, staticResourceNodes)
 
     server.context(applicationWebroot) { ctx =>
       _identityManager.init(ctx.current)

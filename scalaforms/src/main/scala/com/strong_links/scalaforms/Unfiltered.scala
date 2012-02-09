@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
 object Unfiltered {
 
   // Make a base Unfiltered server, able to serve static resources.
-  def makeServer(jettyAdapter: JettyAdapter, port: Int, host: String, staticResourceNodes: Seq[StaticResourceNode]) = {
+  def makeServer(port: Int, host: String, staticResourceNodes: Seq[StaticResourceNode]) = {
 
     def staticResourceFilter = new Filter {
 

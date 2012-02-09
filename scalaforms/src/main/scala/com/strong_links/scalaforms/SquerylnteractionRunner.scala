@@ -63,7 +63,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
         try {
           import com.strong_links.scalaforms.squeryl.SquerylFacade._
           val iwss = transaction {
-            load(s, server)
+            load(s)
           }
 
           for (iws <- iwss) {
@@ -82,7 +82,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
     ctx.setSessionHandler(sh);
   }
 
-  private def lookupIdentity(httpRequest: HttpRequest[HttpServletRequest], receivedAuthIds: Option[Seq[String]], server: Server) = {
+  private def lookupIdentity(httpRequest: HttpRequest[HttpServletRequest], receivedAuthIds: Option[Seq[String]]) = {
 
     val session = httpRequest.underlying.getSession(true): HttpSession
 
@@ -98,32 +98,32 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
     val (needsRedirect, iws) =
       (session.isNew, receivedAuthId) match {
         case (true, None) =>
-          (true, createAnonymous(session, server))
+          (true, createAnonymous(session))
         case (true, Some(aId)) =>
           Errors.fatal("Invalid or expired authentication _ (a new session just started)." << aId)
         case (false, None) =>
-          (true, createAnonymous(session, server))
+          (true, createAnonymous(session))
         case (false, Some(aId)) =>
-          (false, recoverExistingIdentityWithinServer(session, aId, server))
+          (false, recoverExistingIdentityWithinServer(session, aId))
       }
 
     (needsRedirect, iws)
   }
-
-  private def recoverExistingIdentityWithinServer(session: HttpSession, authenticationId: String, server: Server) =
+  
+  private def recoverExistingIdentityWithinServer(session: HttpSession, authenticationId: String) =
     getIdentity(session, authenticationId).getOrElse(Errors.fatal("Unknown authId _." << authenticationId))
 
   def executeInteractionRequest(
-    isPost: Boolean,
-    httpRequest: HttpRequest[HttpServletRequest],
-    extractedUri: UriExtracter,
-    params: Map[String, Seq[String]],
-    server: Server,
-    createInteractionContext: (IdentityWithinServer, ServerOutputStream) => InteractionContext,
-    invokeInteraction: InteractionContext => Unit): ResponseFunction[Any] = {
+      isPost: Boolean, 
+      httpRequest: HttpRequest[HttpServletRequest], 
+      extractedUri: UriExtracter, 
+      params: Map[String, Seq[String]],
+      createInteractionContext: (IdentityWithinServer, ServerOutputStream) => InteractionContext,
+      invokeInteraction: InteractionContext => Unit) = {
+
 
     val (needsRedirect, iws) = inTransaction {
-      lookupIdentity(httpRequest, params.get("authId"), server)
+      lookupIdentity(httpRequest, params.get("authId"))
     }
 
     logDebug("Identity is '_'." << iws)
@@ -153,7 +153,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
    * This will behave as an 'act as' is already logged in
    */
   def login(username: String, ic: InteractionContext) =
-    authenticateWithNewIdentity(ic.iws, username, ic.server)
+    authenticateWithNewIdentity(ic.iws, username)
 
   def logout(ic: InteractionContext) {
 
@@ -174,7 +174,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
       val previousSession = iws.session
 
       val previousIws =
-        lastActiveIdentityFor(iws.session, rootAuth, ic.server).
+        lastActiveIdentityFor(iws.session, rootAuth).
           getOrElse(Errors.fatal("Found no previous authentication for rootAuthenticationUuid = _, while logging out of authentication.id=_.) "
             << (rootAuth, iws.authentication.id)))
 
@@ -191,26 +191,26 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
     }
   }
 
-  private def createAnonymous(session: HttpSession, server: Server): IdentityWithinServer =
-    create(session, Schema.anonymousAccountId, Util.newGuid, server)
+  private def createAnonymous(session: HttpSession): IdentityWithinServer =
+    create(session, Schema.anonymousAccountId, Util.newGuid)
 
-  private def authenticateWithNewIdentity(currentIdentity: IdentityWithinServer, username: String, server: Server): IdentityWithinServer = {
+  private def authenticateWithNewIdentity(currentIdentity: IdentityWithinServer, username: String): IdentityWithinServer = {
 
     val sa = Schema.systemAccounts.where(_.username === username).
       headOption.getOrElse(Errors.fatal("Account not found, username=_." << username))
 
-    create(currentIdentity.session, sa, currentIdentity.authentication.rootAuthenticationUuid.value, server)
+    create(currentIdentity.session, sa, currentIdentity.authentication.rootAuthenticationUuid.value)
   }
 
-  private def create(session: HttpSession, systemAccountId: Long, rootAuthenticationId: String, server: Server): IdentityWithinServer = {
+  private def create(session: HttpSession, systemAccountId: Long, rootAuthenticationId: String): IdentityWithinServer = {
 
     val sa = Schema.systemAccounts.where(_.id === systemAccountId).
       headOption.getOrElse(Errors.fatal("Account not found, id=_." << systemAccountId))
 
-    create(session, sa, rootAuthenticationId, server)
+    create(session, sa, rootAuthenticationId)
   }
 
-  private def loadRoles(sa: SystemAccount, server: Server) = {
+  private def loadRoles(sa: SystemAccount) = {
 
     val roleFqnsOfAccount = sa.roleDefinitions.map(_.fqn.value).toSeq
     val serverRoles = server.allRoles
@@ -218,7 +218,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
     roles
   }
 
-  private def create(session: HttpSession, sa: SystemAccount, rootAuthenticationId: String, server: Server): IdentityWithinServer = inTransaction {
+  private def create(session: HttpSession, sa: SystemAccount, rootAuthenticationId: String): IdentityWithinServer = inTransaction {
 
     val a = new Authentication
     a.httpSessionId :- session.getId
@@ -226,7 +226,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
     a.accountId :- sa.id
     a.startTime :- new java.sql.Timestamp(System.currentTimeMillis)
 
-    val roles = loadRoles(sa, server)
+    val roles = loadRoles(sa)
 
     Schema.authentications.insert(a)
 
@@ -238,7 +238,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
     iws
   }
 
-  private def lastActiveIdentityFor(session: HttpSession, rootAuthId: String, server: Server) = {
+  private def lastActiveIdentityFor(session: HttpSession, rootAuthId: String) = {
     val z =
       from(identitiesForSession(session.getId))(z =>
         where(z._2.rootAuthenticationUuid === rootAuthId and z._2.endTime.isNull)
@@ -247,7 +247,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
 
     val iws =
       for ((u, a, sa) <- z) yield {
-        val roles = loadRoles(sa, server)
+        val roles = loadRoles(sa)
         new IdentityWithinServer(session, a, sa, u, new RoleSet(roles))
       }
 
@@ -262,7 +262,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
         select ((u, a, sa)))
   }
 
-  private def load(session: HttpSession, server: Server) = {
+  private def load(session: HttpSession) = {
 
     val authenticationsForSession = identitiesForSession(session.getId).toSeq
 
