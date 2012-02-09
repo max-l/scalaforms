@@ -13,4 +13,7 @@ private[scalaforms] class IdentityWithinServer(val session: HttpSession, val aut
     "Identity(username=_,rootAuthId=_,roles=_)" <<
       (systemAccount.username.value, authentication.rootAuthenticationUuid.value, roleSet.roles)
   }
+  
+  def authId = 
+    authentication.rootAuthenticationUuid.value
 }

@@ -85,7 +85,7 @@ object GetPage {
 
 object Interaction {
 
-  def apply[T <: Interaction](f: InteractionContext => T)(implicit m: Manifest[T]) =
-    new InteractionDefinition(f, m.erasure, m.erasure == classOf[JsonAction.JsonInteraction])
+  def apply[T <: Interaction](f: InteractionContext => T)(implicit m: Manifest[T], i: Interactions) =
+    new InteractionDefinition(f, m.erasure, m.erasure == classOf[JsonAction.JsonInteraction], i)
 }
 

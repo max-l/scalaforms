@@ -127,8 +127,11 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
 
     logDebug("Identity is '_'." << iws)
 
-    if (needsRedirect)
-      Redirect("_?authId=_" << (extractedUri.uri, iws.authentication.rootAuthenticationUuid.value))
+    if (needsRedirect) {
+      val u = "_?authId=_" << (extractedUri.uri, iws.authentication.rootAuthenticationUuid.value)
+      logDebug("will redirect to '_'." << u)
+      Redirect(u)
+    }
     else {
 
       val t = new ResponseStreamer {
@@ -276,7 +279,9 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
 
   private def run(ic: InteractionContext, invokeInteraction: InteractionContext => Unit) {
 
-    val tx = transaction {
+    val requiresAudit = ic.interactionDefinition.interactions.isAudited
+
+    val tx = if(requiresAudit) transaction {
       val tx0 = new Transaction
       tx0.startTime :- nowTimestamp
       tx0.status :- CompletionStatusDomain.InProgress
@@ -293,25 +298,28 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
       }
 
       Schema.transactions.insert(tx0)
-      tx0
+      Some(tx0)
     }
+    else None
 
     try
       transaction {
 
+         //This is where it all happens :
         invokeInteraction(ic)
 
-        update(Schema.transactions)(t =>
-          where(t.id === tx.id)
-            set (t.status := CompletionStatusDomain.Success,
-              t.endTime := Some(nowTimestamp)))
+        if(requiresAudit)
+          update(Schema.transactions)(t =>
+            where(t.id === tx.get.id)
+              set (t.status := CompletionStatusDomain.Success,
+                t.endTime := Some(nowTimestamp)))
       }
     catch {
       case e: Exception =>
-        transaction {
+        if(requiresAudit) transaction {
           val stackDump = e.getStackTraceString
           update(Schema.transactions)(t =>
-            where(t.id === tx.id)
+            where(t.id === tx.get.id)
               set (t.status := CompletionStatusDomain.Failure,
                 t.endTime := Some(nowTimestamp),
                 t.stackDump := Some(stackDump)))
