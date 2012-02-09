@@ -5,7 +5,7 @@ import com.strong_links.core._
 import java.lang.reflect.Method
 
 object Uri {
-  def apply(method: Method, args: Array[Object], ic: Option[InteractionContext]): String = {
+  def apply(method: Method, args: Array[Object], ic: InteractionContext): String = {
 
     val className = {
       val cn = method.getDeclaringClass.getCanonicalName;
@@ -13,9 +13,18 @@ object Uri {
     }
     if (!applicationWebroot.startsWith("/"))
       Errors.fatal("Constant applicationWebroot does not start with a /.")
-    val x = List(applicationWebroot, className, method.getName).mkString("/")
-    (if (args.length == 0) x else x + "/" + args.toList.mkString("/")) +
-      (if (ic.isDefined) "?authId=" + ic.get.authId else "")
+    val b = new StringBuilder
+    b.append(applicationWebroot)
+    b += '/'
+    b.append(className)
+    b += '/'
+    b.append(method.getName)
+    args.foreach(a => { b += '/'; b.append(a) })
+    if (ic != null) {
+      b.append("?authId=")
+      b.append(ic.authId)
+    }
+    b.toString
   }
 }
 
@@ -24,6 +33,7 @@ object UriExtracter {
 }
 
 class UriExtracter(val uri: String) {
+
   def splitUri(path: String): (String, String, String, Array[String]) = {
     val segments = Util.split(path, "/").filter(!_.isEmpty)
     if (segments.length < 3)
@@ -34,6 +44,7 @@ class UriExtracter(val uri: String) {
     val args = segments.drop(3).toArray
     (webRootPath, className, methodName, args)
   }
+
   def createTypedArgFromString(c: Class[_], s: String, uri: String): AnyRef = {
     if (c.isAssignableFrom(classOf[String]))
       s
@@ -45,6 +56,7 @@ class UriExtracter(val uri: String) {
       Errors.fatal("Unsupported type _ in URI _." << (c.getName, uri))
     }
   }
+
   def extractInformation = {
     val (webRootPath, className, methodName, args) = splitUri(uri)
     val fullClassName = className + "$"
@@ -77,15 +89,10 @@ class UriExtracter(val uri: String) {
 
   val (webRootPath, method, interactions, args, rawStringArgs) = extractInformation
 
-  def invoke(ic: InteractionContext) = {
-    val z = method.invoke(interactions, args: _*).asInstanceOf[InteractionContext => Interaction]
-    z(ic)
-  }
+  def invoke(ic: InteractionContext) = method.invoke(interactions, args: _*).asInstanceOf[InteractionDefinition](ic)
 
-  def toUri(ic: InteractionContext) = Uri(method, args, Option(ic))
+  def toUri(ic: InteractionContext) = Uri(method, args, ic)
 
-  def fqn =
-    method.getDeclaringClass.getCanonicalName + "." +
-      method.getName
+  def fqn = method.getDeclaringClass.getCanonicalName + "." + method.getName
 }
 

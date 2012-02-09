@@ -19,7 +19,7 @@ import org.eclipse.jetty.server.session.JDBCSessionManager
 import scala.collection.mutable.HashMap
 import org.eclipse.jetty.servlet.ServletContextHandler
 
-class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driver, jdbcUrl: String, server: Server) 
+class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driver, jdbcUrl: String, server: Server)
   extends IdentityManager with Logging {
 
   override def init(ctx: ServletContextHandler) {
@@ -81,12 +81,13 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
     val sh = new SessionHandler(jsm)
     ctx.setSessionHandler(sh);
   }
-  
 
   private def lookupIdentity(httpRequest: HttpRequest[HttpServletRequest], receivedAuthIds: Option[Seq[String]]) = {
 
     val session = httpRequest.underlying.getSession(true): HttpSession
-    
+
+    logDebug("Session id: _" << session.getId)
+
     val receivedAuthId = receivedAuthIds match {
       case None => None
       case Some(Seq(aId)) => Some(aId)
@@ -99,7 +100,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
         case (true, None) =>
           (true, createAnonymous(session))
         case (true, Some(aId)) =>
-          Errors.fatal("Invalid or expired authentication _." << aId)
+          Errors.fatal("Invalid or expired authentication _ (a new session just started)." << aId)
         case (false, None) =>
           (true, createAnonymous(session))
         case (false, Some(aId)) =>
@@ -111,7 +112,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
   
   private def recoverExistingIdentityWithinServer(session: HttpSession, authenticationId: String) =
     getIdentity(session, authenticationId).getOrElse(Errors.fatal("Unknown authId _." << authenticationId))
-  
+
   def executeInteractionRequest(
       isPost: Boolean, 
       httpRequest: HttpRequest[HttpServletRequest], 
@@ -120,7 +121,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
       createInteractionContext: (IdentityWithinServer, ServerOutputStream) => InteractionContext,
       invokeInteraction: InteractionContext => Unit) = {
 
-    
+
     val (needsRedirect, iws) = inTransaction {
       lookupIdentity(httpRequest, params.get("authId"))
     }
@@ -129,20 +130,29 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
 
     if (needsRedirect)
       Redirect("_?authId=_" << (extractedUri.uri, iws.authentication.rootAuthenticationUuid.value))
-    else { 
-      new ResponseStreamer {
+    else {
+
+      val interaction = extractedUri.invoke(createInteractionContext(iws, null))
+
+      val t = new ResponseStreamer {
         def stream(os: OutputStream) {
-          val out = new ServerOutputStream(os)          
+          val out = new ServerOutputStream(os)
           val ic = createInteractionContext(iws, out)
           run(ic, invokeInteraction)
           out.flush
+          os.close
         }
       }
+
+      if (interaction.isJson)
+        JsonContent ~> t
+      else
+        t
     }
   }
-  
+
   /**
-   * This will behave as an 'act as' is already logged in 
+   * This will behave as an 'act as' is already logged in
    */
   def login(username: String, ic: InteractionContext) =
     authenticateWithNewIdentity(ic.iws, username)
@@ -160,7 +170,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
     } else {
 
       val authId = iws.authentication.rootAuthenticationUuid.value
-      
+
       val rootAuth = authId
 
       val previousSession = iws.session
@@ -181,7 +191,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
       if (previousSession != newSession)
         Errors.fatal("Session has changed from _ to _." << (previousSession, newSession))
     }
-  }  
+  }
 
   private def createAnonymous(session: HttpSession): IdentityWithinServer =
     create(session, Schema.anonymousAccountId, Util.newGuid)
@@ -266,59 +276,52 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
       new IdentityWithinServer(session, a, sa, u, new RoleSet(roles.toSeq))
     }
   }
-  
-  private def run(ic: InteractionContext, invokeInteraction: InteractionContext => Unit) {
 
+  private def run(ic: InteractionContext, invokeInteraction: InteractionContext => Unit) {
 
     val tx = transaction {
       val tx0 = new Transaction
       tx0.startTime :- nowTimestamp
       tx0.status :- CompletionStatusDomain.InProgress
       tx0.authenticationId :- ic.iws.authentication.id
-      tx0.interactionFqn :- ic.u.fqn
+      tx0.interactionFqn :- ic.uriExtracter.fqn
       tx0.interactionArgs :- {
         //TODO:  should we add 'truncate when length exceeded' behavior in the Field/Domain ?
         val maxLength = tx0.interactionArgs.domain.maxLength.get
-        val args = ic.u.rawStringArgs.mkString("\t")
+        val args = ic.uriExtracter.rawStringArgs.mkString("\t")
         if (args.length > maxLength)
           args.substring(0, maxLength)
-        else 
+        else
           args
       }
-      
+
       Schema.transactions.insert(tx0)
       tx0
-    }        
-    
-    try 
+    }
+
+    try
       transaction {
-      
+
         invokeInteraction(ic)
 
         update(Schema.transactions)(t =>
           where(t.id === tx.id)
-          set(t.status  := CompletionStatusDomain.Success,                      
-              t.endTime := Some(nowTimestamp)               
-          )
-        )
+            set (t.status := CompletionStatusDomain.Success,
+              t.endTime := Some(nowTimestamp)))
       }
     catch {
-      case e: Exception => transaction {
-        val stackDump = e.getStackTraceString
-        update(Schema.transactions)(t =>
-          where(t.id === tx.id)
-          set(t.status  := CompletionStatusDomain.Failure,                      
-              t.endTime := Some(nowTimestamp),
-              t.stackDump := Some(stackDump)
-          )
-        )
-      }
-      throw e
-    }    
+      case e: Exception =>
+        transaction {
+          val stackDump = e.getStackTraceString
+          update(Schema.transactions)(t =>
+            where(t.id === tx.id)
+              set (t.status := CompletionStatusDomain.Failure,
+                t.endTime := Some(nowTimestamp),
+                t.stackDump := Some(stackDump)))
+        }
+        throw e
+    }
   }
-  
-  
-  
 
   private val AUTHENTICATION_ATTRIBUTE_KEY = "ROOT_AUTHENTICATION_KEY"
 
@@ -345,7 +348,6 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
       tmp
     }
   }
-  
+
 }
 
-  
