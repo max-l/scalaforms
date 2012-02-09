@@ -23,6 +23,7 @@ object Uri {
     if (ic != null) {
       b.append("?authId=")
       b.append(ic.authId)
+      println("AUTH_ID =========> " + ic.authId)
     }
     b.toString
   }
@@ -89,7 +90,9 @@ class UriExtracter(val uri: String) {
 
   val (webRootPath, method, interactions, args, rawStringArgs) = extractInformation
 
-  def invoke(ic: InteractionContext) = method.invoke(interactions, args: _*).asInstanceOf[InteractionDefinition](ic)
+  val interactionDefinition = method.invoke(interactions, args: _*).asInstanceOf[InteractionDefinition]
+
+  def invokeInteraction(ic: InteractionContext) = interactionDefinition.f(ic)
 
   def toUri(ic: InteractionContext) = Uri(method, args, ic)
 

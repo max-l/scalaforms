@@ -7,7 +7,10 @@ import java.io._
 
 package object scalaforms {
 
-  type InteractionDefinition = InteractionContext => Interaction
+  //type InteractionDefinition = InteractionContext => Interaction
+
+  class InteractionDefinition(val f: InteractionContext => Interaction,
+    val classOfInteraction: Class[_], val isJson: Boolean)
 
   type RenderingFunction = OutputContext => Unit
 

@@ -6,8 +6,6 @@ import com.strong_links.scalaforms.templates.standard.page
 
 trait Interaction {
 
-  def isJson: Boolean = false
-
   def process(ic: InteractionContext)
 }
 
@@ -42,9 +40,9 @@ object Form {
 
 object GetAction {
 
-  def apply(action: => Unit) = new GetAction(action _)
+  def apply(action: => Unit) = new GetInteraction(action _)
 
-  class GetAction(action: () => Unit) extends Interaction {
+  class GetInteraction(action: () => Unit) extends Interaction {
 
     def process(ic: InteractionContext) {
       action()
@@ -54,15 +52,13 @@ object GetAction {
 
 object JsonAction {
 
-  def apply(action: => Unit) = new JsonAction(action _)
+  def apply(action: => Unit) = new JsonInteraction(action _)
 
-  class JsonAction(action: () => Unit) extends Interaction {
+  class JsonInteraction(action: () => Unit) extends Interaction {
 
     def process(ic: InteractionContext) {
       action()
     }
-
-    override def isJson = true
   }
 }
 
@@ -74,10 +70,10 @@ object GetPage {
   class GetPrepare[R](prepareFunc: () => R) {
 
     def renderWith(renderFunc: R => Unit) =
-      new GetInteraction(prepareFunc, renderFunc)
+      new PageInteraction(prepareFunc, renderFunc)
   }
 
-  class GetInteraction[R](prepareFunc: () => R, renderFunc: R => Unit)
+  class PageInteraction[R](prepareFunc: () => R, renderFunc: R => Unit)
     extends Interaction {
 
     def process(ic: InteractionContext) {
@@ -89,6 +85,7 @@ object GetPage {
 
 object Interaction {
 
-  def apply(f: InteractionDefinition) = f
+  def apply[T <: Interaction](f: InteractionContext => T)(implicit m: Manifest[T]) =
+    new InteractionDefinition(f, m.erasure, m.erasure == classOf[JsonAction.JsonInteraction])
 }
 

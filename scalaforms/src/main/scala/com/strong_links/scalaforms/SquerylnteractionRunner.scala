@@ -132,8 +132,6 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
       Redirect("_?authId=_" << (extractedUri.uri, iws.authentication.rootAuthenticationUuid.value))
     else {
 
-      val interaction = extractedUri.invoke(createInteractionContext(iws, null))
-
       val t = new ResponseStreamer {
         def stream(os: OutputStream) {
           val out = new ServerOutputStream(os)
@@ -144,7 +142,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
         }
       }
 
-      if (interaction.isJson)
+      if (extractedUri.interactionDefinition.isJson)
         JsonContent ~> t
       else
         t

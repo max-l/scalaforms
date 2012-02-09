@@ -68,7 +68,7 @@ trait Server extends Logging {
           },
           invokeInteraction = { ic =>
             Errors.trap("Invoking interaction context for URI _" << originalPath) {
-              val interaction = ic.uriExtracter.invoke(ic)
+              val interaction = ic.uriExtracter.invokeInteraction(ic)
               fieldTransformer.using(identityFieldTransformer) {
                 interaction.process(ic)
               }
