@@ -100,7 +100,7 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
         case (true, None) =>
           (true, createAnonymous(session))
         case (true, Some(aId)) =>
-          Errors.fatal("Invalid or expired authentication _ (a new session just started)." << aId)
+          (true, createAnonymous(session)) // Errors.fatal("Invalid or expired authentication _ (a new session just started)." << aId)
         case (false, None) =>
           (true, createAnonymous(session))
         case (false, Some(aId)) =>
@@ -109,18 +109,17 @@ class SqueryInteractionRunner(port: Int, host: String, jdbcDriver: java.sql.Driv
 
     (needsRedirect, iws)
   }
-  
+
   private def recoverExistingIdentityWithinServer(session: HttpSession, authenticationId: String) =
     getIdentity(session, authenticationId).getOrElse(Errors.fatal("Unknown authId _." << authenticationId))
 
   def executeInteractionRequest(
-      isPost: Boolean, 
-      httpRequest: HttpRequest[HttpServletRequest], 
-      extractedUri: UriExtracter, 
-      params: Map[String, Seq[String]],
-      createInteractionContext: (IdentityWithinServer, ServerOutputStream) => InteractionContext,
-      invokeInteraction: InteractionContext => Unit) = {
-
+    isPost: Boolean,
+    httpRequest: HttpRequest[HttpServletRequest],
+    extractedUri: UriExtracter,
+    params: Map[String, Seq[String]],
+    createInteractionContext: (IdentityWithinServer, ServerOutputStream) => InteractionContext,
+    invokeInteraction: InteractionContext => Unit) = {
 
     val (needsRedirect, iws) = inTransaction {
       lookupIdentity(httpRequest, params.get("authId"))

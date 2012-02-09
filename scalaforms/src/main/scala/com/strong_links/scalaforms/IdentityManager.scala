@@ -7,7 +7,6 @@ import unfiltered.response.ResponseFunction
 
 trait IdentityManager {
 
-
   def executeInteractionRequest(
     isPost: Boolean,
     httpRequest: HttpRequest[HttpServletRequest],
@@ -15,7 +14,6 @@ trait IdentityManager {
     params: Map[String, Seq[String]],
     createInteractionContext: (IdentityWithinServer, ServerOutputStream) => InteractionContext,
     invokeInteraction: InteractionContext => Unit): ResponseFunction[Any]
-
 
   def login(username: String, ic: InteractionContext): IdentityWithinServer
 

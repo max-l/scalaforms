@@ -11,8 +11,7 @@ import java.sql.Driver
 import org.slf4j.LoggerFactory
 
 trait Server extends Logging {
- outer =>
-
+  outer =>
 
   def activeRoles: Seq[Role]
 
@@ -60,7 +59,7 @@ trait Server extends Logging {
 
         val ux = new UriExtracter(path)
 
-        _identityManager.executeInteractionRequest(isPost, httpRequest, ux, params, 
+        _identityManager.executeInteractionRequest(isPost, httpRequest, ux, params,
           createInteractionContext = { (iws, sos) =>
             Errors.trap("Creating interaction context for URI _" << originalPath) {
               val i18nLocale = iws.systemAccount.preferredI18nLocale
@@ -79,7 +78,6 @@ trait Server extends Logging {
     }
   }
 
-
   def start(port: Int, host: String, staticResourceNodes: Seq[StaticResourceNode]): Unit = {
 
     Logging.setLogger(LoggerFactory.getLogger)
@@ -87,13 +85,16 @@ trait Server extends Logging {
     logInfo("Starting server on port: _" <<< port)
     logInfo("Static resource nodes: _" <<< staticResourceNodes)
 
+    // Create basic server that can serve static resources
     val server = Unfiltered.makeServer(port, host, staticResourceNodes)
 
-    server.context(applicationWebroot) { ctx =>
+    // Add the ability to serve "Interaction" requests.
+    server.context(intWebroot) { ctx =>
       _identityManager.init(ctx.current)
       ctx.filter(InteractionHandler)
     }
 
+    // Add the ability to serve "Comet" requests.
     server.context(cometWebroot) { ctx =>
       ComedDServerImpl.createBayeuxHandlerInto(ctx.current)
     }

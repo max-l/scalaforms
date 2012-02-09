@@ -7,8 +7,6 @@ import java.io._
 
 package object scalaforms {
 
-  //type InteractionDefinition = InteractionContext => Interaction
-
   class InteractionDefinition(val f: InteractionContext => Interaction,
     val classOfInteraction: Class[_], val isJson: Boolean)
 
@@ -22,7 +20,7 @@ package object scalaforms {
     def compare(x: Timestamp, y: Timestamp) = x.getTime compare y.getTime
   }
 
-  def applicationWebroot = "/int"
+  def intWebroot = "/int"
   def cometWebroot = "/comet"
 
   type Choices[A] = Option[Map[A, Option[String]]]

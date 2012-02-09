@@ -4,29 +4,38 @@ import com.strong_links.core._
 
 import java.lang.reflect.Method
 
+class Uri(val uri: String) {
+  def format(implicit oc: OutputContext) = Uri.format(uri, oc.authId)
+}
+
+class AuthenticatedUri(uri: String, authId: String) extends Uri(uri) {
+  override def format(implicit oc: OutputContext) = Uri.format(uri, authId)
+}
+
 object Uri {
-  def apply(method: Method, args: Array[Object], ic: InteractionContext): String = {
+
+  def format(uri: String, authId: String) = uri + "?authId=" + authId
+
+  def apply(method: Method, args: Array[Object]): Uri = {
 
     val className = {
       val cn = method.getDeclaringClass.getCanonicalName;
       if (cn.endsWith("$")) cn.substring(0, cn.length - 1) else cn
     }
-    if (!applicationWebroot.startsWith("/"))
-      Errors.fatal("Constant applicationWebroot does not start with a /.")
+    if (!intWebroot.startsWith("/"))
+      Errors.fatal("Constant intWebroot _ does not start with a /." << intWebroot)
     val b = new StringBuilder
-    b.append(applicationWebroot)
+    b.append(intWebroot)
     b += '/'
     b.append(className)
     b += '/'
     b.append(method.getName)
     args.foreach(a => { b += '/'; b.append(a) })
-    if (ic != null) {
-      b.append("?authId=")
-      b.append(ic.authId)
-      println("AUTH_ID =========> " + ic.authId)
-    }
-    b.toString
+    new Uri(b.toString)
   }
+
+  def apply(method: Method, args: Array[Object], ic: InteractionContext): AuthenticatedUri =
+    new AuthenticatedUri(apply(method, args).uri, ic.authId)
 }
 
 object UriExtracter {
