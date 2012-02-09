@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 
 trait Server extends Logging {
  outer =>
-   
+
   def activeRoles: Seq[Role]
 
   /**
@@ -56,7 +56,7 @@ trait Server extends Logging {
         
         val ux = new UriExtracter(path)
         
-        _identityManager.executeInteractionRequest(isPost, httpRequest, ux, params, outer, 
+        _identityManager.executeInteractionRequest(isPost, httpRequest, ux, params, 
           createInteractionContext = { (iws, sos) =>
             
             try {
@@ -64,7 +64,15 @@ trait Server extends Logging {
               var i18nLocale = iws.systemAccount.preferredI18nLocale
               i18nLocale = I18nStock.fr_CA
               println("Serving request with locale _." << i18nLocale)
-              new InteractionContext(iws, outer, ux, httpRequest, i18nLocale, params, sos)
+              
+              val allowed =
+                iws.roleSet.allows(ux.interactions.asInstanceOf[InteractionsEnabler[_]]) ||
+                  iws.roleSet.allows(ux.method)
+            
+              if (!allowed)
+                Errors.fatal("Interaction _ not allowed for user _." << (path, iws.systemAccount.username.value))
+              
+              new InteractionContext(iws, _identityManager, ux, httpRequest, i18nLocale, params, sos)
             } 
             catch {
               Errors.fatalCatch("Processing URI _" << path)
@@ -81,20 +89,6 @@ trait Server extends Logging {
     }
   }
 
-  def createInteractionContext(iws: IdentityWithinServer, u: UriExtracter,
-    httpRequest: HttpRequest[HttpServletRequest], sos: ServerOutputStream, params: Map[String, Seq[String]]) = {
-    try {
-
-      var i18nLocale = iws.systemAccount.preferredI18nLocale
-      i18nLocale = I18nStock.fr_CA
-      println("Serving request with locale _." << i18nLocale)
-      new InteractionContext(iws, this, u, httpRequest, i18nLocale, params, sos)
-    } catch
-      Errors.fatalCatch("Processing URI _" << u.uri)
-  }
-
-  private[scalaforms] val jettyAdapter = new JettyAdapter(this)
-
   def start(port: Int, host: String, staticResourceNodes: Seq[StaticResourceNode]): Unit = {
 
     Logging.setLogger(LoggerFactory.getLogger)
@@ -102,7 +96,7 @@ trait Server extends Logging {
     logInfo("Starting server on port: _" <<< port)
     logInfo("Static resource nodes: _" <<< staticResourceNodes)
 
-    val server = Unfiltered.makeServer(jettyAdapter, port, host, staticResourceNodes)
+    val server = Unfiltered.makeServer(port, host, staticResourceNodes)
 
     server.context(applicationWebroot) { ctx =>
       _identityManager.init(ctx.current)

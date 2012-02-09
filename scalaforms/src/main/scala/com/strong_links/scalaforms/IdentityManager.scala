@@ -10,8 +10,7 @@ trait IdentityManager {
       isPost: Boolean, 
       httpRequest: HttpRequest[HttpServletRequest], 
       extractedUri: UriExtracter, 
-      params: Map[String, Seq[String]], 
-      server: Server,
+      params: Map[String, Seq[String]],
       createInteractionContext: (IdentityWithinServer, ServerOutputStream) => InteractionContext,
       invokeInteraction: InteractionContext => Unit): Responder[Any]
     
