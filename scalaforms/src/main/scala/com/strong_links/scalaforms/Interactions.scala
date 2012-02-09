@@ -15,7 +15,7 @@ class InteractionsEnabler[A <: Interactions](implicit manifest: Manifest[A]) {
     val map = new IdentityMap[Class[_], Object]
   }
 
-  def uriFor(f: A => InteractionContext => Interaction)(implicit ic: InteractionContext) = {
+  def uriFor(f: A => InteractionDefinition)(implicit ic: InteractionContext) = {
     val c = manifest.erasure
     val p = Cache.map.put(c) { c =>
       Tweaks.makeInterceptor(c, (_, m, args) => {

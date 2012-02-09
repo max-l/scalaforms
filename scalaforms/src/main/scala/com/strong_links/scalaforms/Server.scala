@@ -11,9 +11,15 @@ import java.sql.Driver
 import org.slf4j.LoggerFactory
 
 trait Server extends Logging {
+  outer =>
 
   def activeRoles: Seq[Role]
 
+  /**
+   * The admin role is no different than others, except that generally permission giving
+   * actions should be exclusive to this role, it is exposed in this (Server) trait
+   * mainly to force applicative code to designate a role as being 'administrative'.
+   */
   def adminRole: Role
 
   def anonymousRole: Role
@@ -27,6 +33,12 @@ trait Server extends Logging {
   private[scalaforms] def roleForFqn(fqn: String) =
     allRoles.find(_.fqn == fqn).getOrElse(Errors.fatal("Unknown role _" << fqn))
 
+  protected def createIdentityManager: IdentityManager
+
+  private lazy val _identityManager = createIdentityManager
+
+  def identityManager = _identityManager
+
   private object InteractionHandler extends unfiltered.filter.Plan {
 
     object TrimSemicolon {
@@ -35,97 +47,49 @@ trait Server extends Logging {
 
     def intent = {
       case httpRequest: HttpRequest[_] =>
-        val (isPost, TrimSemicolon(path), params) = httpRequest match {
+        val (isPost, originalPath, params) = httpRequest match {
           case GET(Path(p) & Params(params)) => (false, p, params)
           case POST(Path(p) & Params(params)) => (true, p, params)
+          case _ => Errors.fatal("Unsupported request.")
         }
 
-        executeInteractionRequest(isPost, httpRequest, path, params)
-    }
-  }
+        val TrimSemicolon(path) = originalPath
 
-  private def lookupIdentity(session: HttpSession, receivedAuthIds: Option[Seq[String]]) = {
+        logInfo("Intercepting URI '_'." << path)
 
-    val receivedAuthId = receivedAuthIds match {
-      case None => None
-      case Some(Seq(aId)) => Some(aId)
-      case Some(seq) => Errors.fatal("More than one authId was received (_)." << seq.length)
-      case someJunk => Errors.fatal("Invalid authId _." << someJunk)
-    }
+        val ux = new UriExtracter(path)
 
-    val (needsRedirect, iws) =
-      (session.isNew, receivedAuthId) match {
-        case (true, None) =>
-          (true, IdentityWithinServer.createAnonymous(session, this))
-        case (true, Some(aId)) =>
-          Errors.fatal("Invalid or expired authentication _." << aId)
-        case (false, None) =>
-          (true, IdentityWithinServer.createAnonymous(session, this))
-        case (false, Some(aId)) =>
-          (false, jettyAdapter.getIdentity(session, aId).getOrElse(Errors.fatal("Unknown authId _." << aId)))
-      }
-
-    (needsRedirect, iws)
-  }
-
-  def processUri(iws: IdentityWithinServer, session: HttpSession, u: UriExtracter,
-    httpRequest: HttpRequest[HttpServletRequest], sos: ServerOutputStream, params: Map[String, Seq[String]]) {
-    try {
-
-      var i18nLocale = iws.systemAccount.preferredI18nLocale
-      i18nLocale = I18nStock.fr_CA
-      println("Serving request with locale _." << i18nLocale)
-      val ctx = new InteractionContext(iws, this, u, httpRequest, i18nLocale, params, sos)
-
-      fieldTransformer.using(identityFieldTransformer) {
-        SqueryInteractionRunner.run(ctx)
-      }
-    } catch
-      Errors.fatalCatch("Processing URI _" << u.uri)
-  }
-
-  def executeInteractionRequest(isPost: Boolean, httpRequest: HttpRequest[HttpServletRequest], uri: String, params: Map[String, Seq[String]]) = {
-
-    logInfo("Intercepting URI '_'." << uri)
-
-    val u = new UriExtracter(uri)
-
-    val session = httpRequest.underlying.getSession(true): HttpSession
-
-    import com.strong_links.scalaforms.squeryl.SquerylFacade._
-    val (needsRedirect, iws) = inTransaction {
-      lookupIdentity(session, params.get("authId"))
-    }
-
-    logDebug("Identity is '_'." << iws)
-
-    if (needsRedirect)
-      Redirect("_?authId=_" << (uri, iws.authentication.rootAuthenticationUuid.value))
-    else {
-      new ResponseStreamer {
-        def stream(os: OutputStream) {
-          val out = new ServerOutputStream(os)
-          processUri(iws, session, u, httpRequest, out, params)
-          out.flush
-          os.close
-        }
-      }
+        _identityManager.executeInteractionRequest(isPost, httpRequest, ux, params, outer,
+          createInteractionContext = { (iws, sos) =>
+            Errors.trap("Creating interaction context for URI _" << originalPath) {
+              val i18nLocale = iws.systemAccount.preferredI18nLocale
+              new InteractionContext(iws, outer, ux, httpRequest, i18nLocale, params, sos)
+            }
+          },
+          invokeInteraction = { ic =>
+            Errors.trap("Invoking interaction context for URI _" << originalPath) {
+              val interaction = ic.uriExtracter.invoke(ic)
+              fieldTransformer.using(identityFieldTransformer) {
+                interaction.process(ic)
+              }
+            }
+          })
     }
   }
 
   private[scalaforms] val jettyAdapter = new JettyAdapter(this)
 
-  def start(port: Int, host: String, staticResourceNodes: Seq[StaticResourceNode], jdbcDriver: Driver, jdbcUrlWithUsernameAndPassword: String): Unit = {
+  def start(port: Int, host: String, staticResourceNodes: Seq[StaticResourceNode]): Unit = {
 
     Logging.setLogger(LoggerFactory.getLogger)
 
     logInfo("Starting server on port: _" <<< port)
     logInfo("Static resource nodes: _" <<< staticResourceNodes)
 
-    val server = Unfiltered.makeServer(jettyAdapter, port, host, staticResourceNodes, jdbcDriver, jdbcUrlWithUsernameAndPassword)
+    val server = Unfiltered.makeServer(jettyAdapter, port, host, staticResourceNodes)
 
     server.context(applicationWebroot) { ctx =>
-      jettyAdapter.init(ctx.current, port, host, jdbcDriver, jdbcUrlWithUsernameAndPassword)
+      _identityManager.init(ctx.current)
       ctx.filter(InteractionHandler)
     }
 

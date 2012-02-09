@@ -6,6 +6,8 @@ import com.strong_links.scalaforms.templates.standard.page
 
 trait Interaction {
 
+  def isJson: Boolean = false
+
   def process(ic: InteractionContext)
 }
 
@@ -50,6 +52,20 @@ object GetAction {
   }
 }
 
+object JsonAction {
+
+  def apply(action: => Unit) = new JsonAction(action _)
+
+  class JsonAction(action: () => Unit) extends Interaction {
+
+    def process(ic: InteractionContext) {
+      action()
+    }
+
+    override def isJson = true
+  }
+}
+
 object GetPage {
 
   def prepare[R](prepareFunc: => R) =
@@ -73,6 +89,6 @@ object GetPage {
 
 object Interaction {
 
-  def apply(f: InteractionContext => Interaction) = f
+  def apply(f: InteractionDefinition) = f
 }
 

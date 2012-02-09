@@ -33,6 +33,7 @@ object UriExtracter {
 }
 
 class UriExtracter(val uri: String) {
+
   def splitUri(path: String): (String, String, String, Array[String]) = {
     val segments = Util.split(path, "/").filter(!_.isEmpty)
     if (segments.length < 3)
@@ -43,6 +44,7 @@ class UriExtracter(val uri: String) {
     val args = segments.drop(3).toArray
     (webRootPath, className, methodName, args)
   }
+
   def createTypedArgFromString(c: Class[_], s: String, uri: String): AnyRef = {
     if (c.isAssignableFrom(classOf[String]))
       s
@@ -54,6 +56,7 @@ class UriExtracter(val uri: String) {
       Errors.fatal("Unsupported type _ in URI _." << (c.getName, uri))
     }
   }
+
   def extractInformation = {
     val (webRootPath, className, methodName, args) = splitUri(uri)
     val fullClassName = className + "$"
@@ -86,15 +89,10 @@ class UriExtracter(val uri: String) {
 
   val (webRootPath, method, interactions, args, rawStringArgs) = extractInformation
 
-  def invoke(ic: InteractionContext) = {
-    val z = method.invoke(interactions, args: _*).asInstanceOf[InteractionContext => Interaction]
-    z(ic)
-  }
+  def invoke(ic: InteractionContext) = method.invoke(interactions, args: _*).asInstanceOf[InteractionDefinition](ic)
 
   def toUri(ic: InteractionContext) = Uri(method, args, ic)
 
-  def fqn =
-    method.getDeclaringClass.getCanonicalName + "." +
-      method.getName
+  def fqn = method.getDeclaringClass.getCanonicalName + "." + method.getName
 }
 

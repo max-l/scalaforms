@@ -93,16 +93,15 @@ class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] wi
   }
 
   protected def defaultRenderer(oc: OutputContext) {
-    forms.field1(field)(oc)
-    forms.field2(oc)
-    forms.field3(field)(oc)
+//    forms.field1(field)(oc)
+//    forms.field2(oc)
+//    forms.field3(field)(oc)
   }
 
   def renderLabel(oc: OutputContext) {
     _label match {
       case None =>
-      case Some(label) =>
-        forms.fieldLabelFor(label, inputId)(oc)
+      //case Some(label) => forms.fieldLabelFor(label, inputId)(oc)
     }
   }
 
