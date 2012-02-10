@@ -15,8 +15,6 @@ object Buildz extends Build {
     organization := "com.strong-links",
     version := "0.2",
     scalaVersion := versionOfScala,
-    logLevel in Global := Level.Warn,
-    publishArtifact in packageDoc := false,
     resolvers += ScalaToolsSnapshots
   )
    
