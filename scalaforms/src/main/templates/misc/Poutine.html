@@ -5,41 +5,26 @@
 <p /> 
 $a + $b = $sum
 <p />
-$hello: i18n
+$hello: I18n
 <p />
-$user.firstName: label
+$user.firstName: Label
 <p />
-$user.firstName: control
+$user.firstName: Control
 <p />
-$user.lastName: field
+$user.lastName: Field
 <p />
-XML: $data.`xml`: xml
+XML: $data.xml: Xml
 <p />
-String: $data.`string`
+String: $data.string
 <p />
-String raw: $data.`string` : raw
+String raw: $data.string : Raw
 <p />
 String javascript: 
 <script>
-var s = $data.`string`:js;
+var s = $data.string:Js;
 document.write('Javascript output: ' + s);
 </script>
 <p />
-
-<font face="Courier">
-Formes proposées :
-<ol>
-<li>$object.member -- Normal expanded html string [base type String]
-<li>$object.member:js -- Javascript string with quotes [base type String]
-<li>$object.member:raw -- String "as is" [base type String]
-<li>$object.member:xml -- XML "as is" [base type XML]
-<li>$object.member:field -- Complete raw field [base type Field, augmented to FieldForm]
-<li>$object.member:fieldLabel -- Field label raw string [base type Field, augmented to FieldForm]
-<li>$object.member:fieldControl -- Field control raw string [base type Field, augmented to FieldForm]
-<li>$object.member:fieldHelp -- Field help raw string [base type Field, augmented to FieldForm]
-<li>$object.member:fieldError -- Field error raw string [base type Field, augmented to FieldForm]
-</ol>
-</font>
 <!-- end -->
 
 Some junk !
