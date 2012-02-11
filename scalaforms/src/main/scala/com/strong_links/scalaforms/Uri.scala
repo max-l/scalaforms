@@ -12,6 +12,10 @@ class AuthenticatedUri(uri: String, authId: String) extends Uri(uri) {
   override def format(implicit oc: OutputContext) = Uri.format(uri, authId)
 }
 
+class StaticUri(packageName: String, path: String) extends Uri(StaticResourceNode.prefix + packageName) {
+  override def format(implicit oc: OutputContext) = Uri.format(uri, oc.authId)
+}
+
 object Uri {
 
   def format(uri: String, authId: String) = uri + "?authId=" + authId

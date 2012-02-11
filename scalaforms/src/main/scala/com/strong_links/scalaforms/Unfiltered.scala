@@ -55,7 +55,7 @@ object Unfiltered {
     val server = unfiltered.jetty.Http(port, host)
 
     def addStaticResourceContext(staticResourceNode: StaticResourceNode) {
-      server.context("/" + staticResourceNode.contextName) { ctx =>
+      server.context(staticResourceNode.context) { ctx =>
         ctx.resources(staticResourceNode.url)
         ctx.filter(staticResourceFilter)
         ctx.current.setErrorHandler(staticResourceErrorHandler)
