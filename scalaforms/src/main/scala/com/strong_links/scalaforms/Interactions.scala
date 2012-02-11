@@ -2,7 +2,19 @@ package com.strong_links.scalaforms
 
 import com.strong_links.core._
 
-trait Interactions
+// TODO: rename InteractionSet, InteractionPackage, InteractionModule ? 
+trait Interactions {
+  
+  protected implicit def thisInteractions = this
+  
+  def isAudited = false
+}
+
+trait AuditedInteractions extends Interactions {  
+  
+  override def isAudited = true
+}
+ 
 
 class InteractionsEnabler[A <: Interactions](implicit manifest: Manifest[A]) {
   self: A =>
@@ -25,6 +37,12 @@ class InteractionsEnabler[A <: Interactions](implicit manifest: Manifest[A]) {
     f(p.asInstanceOf[A])
     uriOnTL.get
   }
+  
+  //TODO: je pense qu'on devrait on avoir :
+  
+  //def uriFor(f: (A => InteractionDefinition)(implicit ic: InteractionContext)
+  // et qqchose comme :
+  //def anonymousUriFor(f: (A => InteractionDefinition))
 
   def authenticateUriFor(f: (A => InteractionDefinition), ic: InteractionContext): AuthenticatedUri = {
     new AuthenticatedUri(uriFor(f).uri, ic.authId)

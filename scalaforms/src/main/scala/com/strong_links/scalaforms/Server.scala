@@ -55,20 +55,22 @@ trait Server extends Logging {
 
         val TrimSemicolon(path) = originalPath
 
-        logInfo("Intercepting URI '_'." << path)
+
+        logInfo("Intercepting URI _." << path)
+        logDebug("Raw URI _." << originalPath)
 
         val ux = new UriExtracter(path)
 
         _identityManager.executeInteractionRequest(isPost, httpRequest, ux, params,
           createInteractionContext = { (iws, sos) =>
             Errors.trap("Creating interaction context for URI _" << originalPath) {
-              val i18nLocale = iws.systemAccount.preferredI18nLocale
-              new InteractionContext(iws, _identityManager, ux, httpRequest, i18nLocale, params, sos)
-
+              logDebug("will create InteractionContext for _." << iws.authId)
+              val i18nLocale = iws.systemAccount.preferredI18nLocale              
+              new InteractionContext(iws, _identityManager, ux, httpRequest, i18nLocale, params, sos, ux.interactionDefinition)
             }
           },
           invokeInteraction = { ic =>
-            Errors.trap("Invoking interaction context for URI _" << originalPath) {
+            Errors.trap("Invoking interaction context for URI _, authId=_" << (originalPath, ic.authId)) {
               val interaction = ic.uriExtracter.invokeInteraction(ic)
               fieldTransformer.using(identityFieldTransformer) {
                 interaction.process(ic)

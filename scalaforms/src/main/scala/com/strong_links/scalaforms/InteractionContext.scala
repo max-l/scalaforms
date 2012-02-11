@@ -19,11 +19,11 @@ trait OutputContext {
 
 class InteractionContext(var iws: IdentityWithinServer, val identityManager: IdentityManager,
   val uriExtracter: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], val i18nLocale: I18nLocale,
-  params: Map[String, Seq[String]], val out: ServerOutputStream) extends OutputContext {
+  params: Map[String, Seq[String]], val out: ServerOutputStream, val interactionDefinition: InteractionDefinition) extends OutputContext {
 
   override def toString = iws.toString
 
-  def authId = iws.authentication.rootAuthenticationUuid.value
+  def authId = iws.authId
 
   def currentIdendityUsername = iws.systemAccount.username.value
 
