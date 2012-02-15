@@ -74,7 +74,7 @@ object PreferredLanguageCodeDomain extends StringDomain {
 
 object HttpSessionIdDomain extends StringDomain {
   val label = I18n("Http session id")
-}  
+}
 
 object UuidKeyDomain extends StringDomain {
   val label = I18n("uuid")
@@ -86,7 +86,7 @@ object FqnDomain extends StringDomain {
 
 object InteractionFqnDomain extends StringDomain {
   val label = I18n("Interaction fully qualified name")
-}  
+}
 
 object InteractionArgsDomain extends StringDomain {
   val label = I18n("Interaction arguments")

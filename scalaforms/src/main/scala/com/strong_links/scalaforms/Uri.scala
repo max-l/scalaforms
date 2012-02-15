@@ -6,6 +6,7 @@ import java.lang.reflect.Method
 
 class Uri(val uri: String) {
   def format(implicit oc: OutputContext) = Uri.format(uri, oc.authId)
+  override def toString = uri
 }
 
 class AuthenticatedUri(uri: String, authId: String) extends Uri(uri) {
