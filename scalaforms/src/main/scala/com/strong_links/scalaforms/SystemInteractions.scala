@@ -19,14 +19,14 @@ trait Poutine extends Interactions {
       u.lastName :- "Lévesque"
       val data = new {
         val xml = <b>Bold</b>
-        val string = "<b>Super & 'Cool' !!!</b>"
+        val alienShip = "Alien spaceships appear as <x'/\"&&\"\\'x> symbol."
         val user = u
       }
 
       data
     } renderWith { data =>
       com.strong_links.scalaforms.templates.misc.poutine.plus(
-        Util.nowAsString, 1.toString, 2.toString, 3.toString, I18n("Hello world"), data.user, data)
+        Util.nowAsString, Some("1"), Some("2"), Some("3"), I18n("Hello world"), data.user, data)
     }
   }
 

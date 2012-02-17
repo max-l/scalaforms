@@ -1,31 +1,104 @@
-<!-- def plus($now, $a, $b, $sum, $hello, $user, $data) -->
+<!-- def javascript disableInterpretation -->
+<script>
+var __heRegex =  /<|>|&|\u00A0|"/g;
 
+String.prototype.toHtml = function() {
+  var result = this;
+  var x = result.match(__heRegex);
+  if (x != null) {
+    var processAmp = false;
+    var processLt = false;
+    var processGt = false;
+    var processNbsp = false;
+    var processQuot = false;
+    for (i = 0; i < x.length; i ++)
+      switch (x[i]) {
+        case '&': processAmp = true; break;
+        case '<': processLt = true; break;
+        case '>': processGt = true; break;
+        case '\u00A0': processNbsp = true; break;
+        case '"': processQuot = true; break;
+        default: ;
+      }
+    if (processAmp) result = result.replace(/&/g, '&amp;');
+    if (processLt) result = result.replace(/</g, '&lt;');
+    if (processGt) result = result.replace(/>/g, '&gt;');
+    if (processNbsp) result = result.replace(/\u00A0/g, '&nbsp;'); 
+    if (processQuot) result = result.replace(/"/g, '&quot;');
+  }
+  return result;
+}
+
+function change(newText) {
+  document.getElementById('zone1').innerHTML = newText;
+  document.getElementById('zone2').innerHTML = newText;
+  document.getElementById('zone3').value = newText;
+  document.getElementById('zone4').innerHTML = newText.toHtml();
+  document.getElementById('zone5').innerHTML = newText.toHtml();
+  document.getElementById('zone6').value = newText.toHtml();
+}
+</script>
+<!-- def plus($now, $a, $b, $sum, $hello, $user, $data) -->
 <p />
 <h3>Ceci est généré avec un template le $now</h3>
-<p /> 
-$a + $b = $sum
 <p />
+<!-- ifdef $a --><!-- ifdef $b --><!-- ifdef $sum --> 
+$a + $b = $sum
+<!-- endif --><!-- endif --><!-- endif -->
+<p />
+{Hello my friend!!!} 
 $hello: I18n
 <p />
-$user.firstName: Label
+$user.firstName:Label
 <p />
-$user.firstName: Control
+$user.firstName:Control
 <p />
-$user.lastName: Field
+$user.lastName:Field
 <p />
-XML: $data.xml: Xml
+XML: $data.xml:Xml
 <p />
-String: $data.string
+Alien ship: $data.alienShip
 <p />
-String raw: $data.string : Raw
+Alien ship raw: $data.alienShip:Raw
 <p />
-String javascript: 
+Alien ship with javascript: 
 <script>
-var s = '$data.string:Js';
-document.write('Javascript output: ' + s);
+var alienShip = '$data.alienShip:Js'; 
+alert('Alien ship symbol has been loaded as ' + alienShip);
+var otherAlienShip = "$data.alienShip:Js"; 
+document.write(alienShip);
 </script>
+<h2 id="zone1">--</h2>
+<p />
+<textarea id="zone2" disabled="disabled" rows="5" cols="80">
+--
+</textarea>
+<p />
+<input type="text" id="zone3" disabled="disabled" size="80" value="--" />
+<p />
+<h2 id="zone4">--</h2>
+<p />
+<textarea id="zone5" disabled="disabled" rows="5" cols="80">
+--
+</textarea>
+<p />
+<input type="text" id="zone6" disabled="disabled" size="80" value="--" />
+<p />
+<input type="submit" value="Reset" onClick="change('--')" />
+<p />
+<input type="submit" value="Test A1" onClick="change(alienShip)" />
+<br />
+<input type="submit" value="Test A2" onClick="change(otherAlienShip)" />
+<br />
+<input type="submit" value="Test B" onClick="change('$data.alienShip')" />
+<br />
+<input type="submit" value="Test C" onClick="change('$data.alienShip:Js')" />
+<br />
+<input type="submit" value="Test D" onClick="change('$data.alienShip:JsHtml')" />
 <p />
 <!-- end -->
+
+
 
 Some junk !
 
