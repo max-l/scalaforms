@@ -12,7 +12,8 @@ case class StaticResourceNode(contextName: String, urlPath: String) {
     Errors.fatal("Invalid context name _" << contextName, "Only lowercase letters are allowed here.")
 
   val url = {
-    val node = new File(OS.translatePath(urlPath))
+    //val node = new File(OS.translatePath(urlPath))
+    val node = new File(urlPath)
     IO.checkForExistingDirectory(node)
     node.toURI.toURL
   }
