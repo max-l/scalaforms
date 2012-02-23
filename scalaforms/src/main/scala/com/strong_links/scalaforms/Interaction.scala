@@ -14,3 +14,7 @@ abstract trait  FormInteraction extends Interaction {
 abstract case class LoginInteraction[L <: IdentityTrustLevel](maximalTrustLevel: L) extends Interaction {
   def processPost(postArgs: Map[String,Seq[String]]): (LoginResult[L], (ServerOutputStream) => Unit)
 }
+
+abstract case class LoginGetInteraction[L <: IdentityTrustLevel](maximalTrustLevel: L) extends Interaction {
+  def processLoginGet(args: Map[String,Seq[String]]): (LoginResult[L], (ServerOutputStream) => Unit)
+}

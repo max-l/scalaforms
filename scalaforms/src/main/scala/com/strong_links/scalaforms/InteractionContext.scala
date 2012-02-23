@@ -46,7 +46,7 @@ sealed trait LoginResult[+L <: IdentityTrustLevel]
 
 sealed case class LoginSuccess[+L <: IdentityTrustLevel](userId: String, level: L, nextUri: Uri) extends LoginResult[L]
 
-sealed case class LoginFailure(errorMessage: I18n) extends LoginResult[Nothing]
+sealed case class LoginFailure(errorMessage: I18n, nextUri: Option[Uri] = None) extends LoginResult[Nothing]
 
 case class IdentityTrustLevelEvidence[L](l: L)
 
@@ -54,6 +54,23 @@ class InteractionDefinition[L <: IdentityTrustLevel, I <: Interaction](val requi
 
   def createInteraction(ic: InteractionContext[L]) = f(ic)
 } 
+
+
+object GetMethod {
+  def receive[A](f: Map[String,Seq[String]] => A) = new GetMethodFunc[A](f)
+
+  class GetMethodFunc[A](f: Map[String,Seq[String]] => A) {
+
+  }
+
+  def receiveExternalLogin[L <: IdentityTrustLevel](f: Map[String,Seq[String]] => LoginResult[L])(implicit idl: IdentityTrustLevelEvidence[L]) =
+    new LoginGetInteraction[L](idl.l) {
+      def processGet(out: ServerOutputStream) {}
+      def processLoginGet(args: Map[String,Seq[String]]): (LoginResult[L], (ServerOutputStream) => Unit) = {
+        (f(args), sos => {})
+      }
+    }
+}
 
 object LoginForm {
 
@@ -92,7 +109,7 @@ object LoginForm {
       val convertedRes: FormPostResult[LoginResult[L]] = 
         postRes match {
           case LoginSuccess(userId,level, nextUri) => FormPostResult(true, None, Some(nextUri), LoginSuccess(userId,level, nextUri))
-          case LoginFailure(msg)                   => FormPostResult(true, Some(msg), None, LoginFailure(msg)) 
+          case LoginFailure(msg,_)                 => FormPostResult(true, Some(msg), None, LoginFailure(msg)) 
         }
 
       (postRes, (out: ServerOutputStream) => FormRenderContext(a, Option(convertedRes), out))

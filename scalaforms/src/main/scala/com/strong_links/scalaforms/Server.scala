@@ -133,6 +133,17 @@ trait Server extends Logging {
     val isAuthentication = 
       maxTrustLevelUpgradeIfAuthenticationForm.isDefined
 
+    def processLoginResult(i: Interaction, res: (LoginResult[IdentityTrustLevel], (ServerOutputStream) => Unit)) = res match {
+      case (LoginSuccess(userId, newTrustLevel, Uri(defaultNextUri)), onFailRenderer) => {
+        val nextUri = cm.nextUriAfterAuth.getOrElse(defaultNextUri)
+        // Send a new authenticator cookie :
+        prependCookies(Redirect(nextUri), Seq(cm.createStrongAuthenticator(userId, newTrustLevel)))
+      }
+      case (LoginFailure(errorMessage,_), onFailRenderer) =>
+        createStreamer(onFailRenderer)
+      case result => 
+        Errors.fatal("Invalid post result _ for LoginInteraction _." << (result, i))
+    }
 
     val renderFuncOrRedirect =
       if(isAuthentication && sslSessionId.isEmpty)
@@ -142,19 +153,8 @@ trait Server extends Logging {
       else if(cm.needsToAuthenticate)
         prependCookies(Redirect(getAuthenticatingUriFor(interactionDefinition.requiredTrustLevel)), Seq(cm.cookieForNextUriAfterAuth(originalPath)))
       else interaction match {
-        case i@ LoginInteraction(maximalTrustLevel) if isPost => {
-          i.processPost(params) match {
-            case (LoginSuccess(userId, newTrustLevel, Uri(defaultNextUri)), onFailRenderer) => {
-              val nextUri = cm.nextUriAfterAuth.getOrElse(defaultNextUri)
-              // Send a new authenticator cookie :
-              prependCookies(Redirect(nextUri), Seq(cm.createStrongAuthenticator(userId, newTrustLevel)))
-            }
-            case (LoginFailure(errorMessage), onFailRenderer) =>
-              createStreamer(onFailRenderer)
-            case result => 
-              Errors.fatal("Invalid post result _ for LoginInteraction _." << (result, i))
-          }
-        }
+        case i@ LoginInteraction(_) if isPost =>
+          processLoginResult(i, i.processPost(params))
         case fi: FormInteraction if isPost => {
           fi.processPost(params) match {
             case (FormPostResult(true, _, Some(Uri(nextUri)), _), onFailRenderer) =>
@@ -164,12 +164,12 @@ trait Server extends Logging {
             case _ => invalidRequest
           }
         }
-        case i: LogoutInteraction => {
+        case i: LogoutInteraction =>
           prependCookies(createStreamer(i.processGet(_)), cm.seqOfStrongAuthTerminationCookiesIfAuthenticated)
-        }
-        case i: Interaction => {
+        case i@ LoginGetInteraction(_) =>
+          processLoginResult(i, i.processLoginGet(params))
+        case i: Interaction =>
           createStreamer(i.processGet(_))
-        }
         case _ => invalidRequest
       }
 
@@ -208,7 +208,6 @@ object DebugTls extends ThreadLocalStack[(HttpRequest[HttpServletRequest],Map[St
 
   def dumpAll(out: ServerOutputStream) = map { x =>
     val (req, args) = x
-    out << "<pre>\n"
     out <<("Http Method: _\n" <<  req.underlying.getMethod())
     out <<("URL: _\n" <<  req.underlying.getRequestURL())
     out << req.cookies.sortBy(_.name).map( c => "_ -> _" <<< (c.name, c.value)).mkString("Cookies : \n  ", "\n  ", "")
@@ -219,6 +218,5 @@ object DebugTls extends ThreadLocalStack[(HttpRequest[HttpServletRequest],Map[St
     for(keyWithSeqOfValues <- args.toSeq.sortBy(_._1)) {
       out << ("\n  '_' -> _" << (keyWithSeqOfValues._1, keyWithSeqOfValues._2.map("'" + _ + "'").mkString("[",",","]")))
     }
-    out << "</pre>"
   }
 }
