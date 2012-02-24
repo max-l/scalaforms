@@ -88,6 +88,7 @@ class SessionCookieManager(
 
   val needsToAuthenticate =
     (secureSessionTokenStatusIfExists, secureSessionToken) match {
+      case (Some(ToughCookieStatus.Invalid), _) => true
       case (None, None) => 
         requestedIdentityTrustLevel >= StronglyAuthenticated
       case (Some(ToughCookieStatus.Expired), _) => 
@@ -121,22 +122,27 @@ class SessionCookieManager(
   val userCorrelationId = 
     cookieValue(userCorrelationIdCookieName)
 
-  def createStrongAuthenticator(userId: String, newTrustLevel: IdentityTrustLevel, forLogout: Boolean = false) = {
-    val b = new ToughCookieBakery(
-        serverSecretKey, 
-        sslSessionId.getOrElse(Errors.fatal("Cannot create a strong authenticator on a non SSL connection.")))
+  
+    
+  def createStrongAuthenticator(userId: String, trustLevel: IdentityTrustLevel, forLogout: Boolean = false) = {
+
     val duration = if(forLogout) 0 else stronlyAuthenticatedSessionMaxIdleTime
-    val confidentialSessionToken = SecureSessionToken.newConfidentialSessionToken(newTrustLevel)
-    val c = b.bake(userId, duration, confidentialSessionToken)
-    val authenticator = newCookie(secureSessionTokenCookieName, c, stronlyAuthenticatedSessionMaxIdleTime)
-    authenticator
+
+    val t = SecureSessionToken.createSecureSessionToken(
+      userId, 
+      trustLevel, 
+      serverSecretKey,
+      sslSessionId.getOrElse(Errors.fatal("Cannot create a strong authenticator on a non SSL connection.")),
+      duration)
+
+    newCookie(secureSessionTokenCookieName, t, stronlyAuthenticatedSessionMaxIdleTime)
   }
 
   def seqOfStrongAuthTerminationCookiesIfAuthenticated =
     secureSessionToken match {
       case None => Nil
       case Some(t) => Seq(
-        newCookie(userCorrelationIdCookieName, t.userId, userCorrelationCookieMaxAgeInDays * 24 * 60 * 60),
+        //newCookie(userCorrelationIdCookieName, t.userId, userCorrelationCookieMaxAgeInDays * 24 * 60 * 60),
         createStrongAuthenticator(t.userId, Unidentified).maxAge(60 * 5)
       )
     }
@@ -144,12 +150,63 @@ class SessionCookieManager(
 
 
 
+object SecureSessionToken extends Logging {
+
+  def createSecureSessionToken(userId: String, trustLevel: IdentityTrustLevel, serverSecretKey: Array[Byte], sslSessionId: String, duration: Int) = {
+    val b = new ToughCookieBakery(serverSecretKey, sslSessionId)
+    val confidentialSessionToken = SecureSessionToken.newConfidentialSessionToken(trustLevel)
+    b.bake(userId, duration, confidentialSessionToken)
+  }
+
+  private def newConfidentialSessionToken(l: IdentityTrustLevel) = 
+    Util.newGuid + "&" + l.numericValue
+
+  // Some(secureSessionId, verifiedIdentityTrustLevel)
+  private def parseConfidentialSessionToken(data: String) =
+    try {
+      data.split('&').toList match {
+        case List(secureSessionId, verifiedIdentityTrustLevel) => 
+          Some(secureSessionId, IdentityTrustLevel.decode(verifiedIdentityTrustLevel))
+        case _ => None
+      }
+    }
+    catch {
+      case e: Exception => {
+        logWarn("invalid confidentialSessionToken _." << data)
+        None
+      }
+    }
+
+  def validateAndExtend(cookieValue: String, serverSecretKey: Array[Byte], sslSessionId: String, sessionMaxIdleTime: Int) = 
+    Errors.trap("Invalid secureSessionToken _." << cookieValue) {
+
+      val b = new ToughCookieBakery(serverSecretKey, sslSessionId)
+      b.validate(cookieValue) match {
+        case (s @ ToughCookieStatus.Valid, Some((expiryTime, data, userId))) => 
+          parseConfidentialSessionToken(data) match {
+            case None => (ToughCookieStatus.Invalid, None)
+            case Some((secureSessionId, verifiedIdentityTrustLevel)) => 
+              (s, Some(new SecureSessionToken(userId, data, b.bake(userId, sessionMaxIdleTime, data), secureSessionId, verifiedIdentityTrustLevel)))
+        }
+        case (s, _) => (s, None)
+      }
+    }
+}
+
+class SecureSessionToken(
+    val userId: String, 
+    val confidentialSessionToken: String, 
+    val extendedToken: String, 
+    val secureSessionId: String, 
+    val verifiedIdentityTrustLevel: IdentityTrustLevel)
+
+
   /**
    * 
-   *  userName | expirationTime | encrypt(data,k) | signature
+   *  userName : expirationTime : encrypt(data,k) : signature
    * 
    *  where :  
-   *   k is an encryption key computed by : k = HMAC(userName | expirationTime, serverSecret)
+   *   k is an encryption key computed by : k = HMAC(userName,expirationTime, serverSecret)
    *   signature is : HMAC( userName| expirationTime | data | sessionKey, k)   
    *
    * Note : 
@@ -172,11 +229,12 @@ class ToughCookieBakery(_serverSecret: Array[Byte], _sessionKey: String) extends
 
   def this(_serverSecretz: String, sk: String) = this(_serverSecretz.getBytes("UTF-8"), sk)
 
-  def dataIsConfidential = false
+  private def dataIsConfidential = false
+  private val serverSecret = _serverSecret : CryptoField
+  private val sessionKey = _sessionKey : CryptoField
 
-  val serverSecret = _serverSecret : CryptoField
-  val sessionKey = _sessionKey : CryptoField
-
+  // a separator for concatenating crypto fields in hash computations
+  private val | = "|" : CryptoField
 
   def validate(cookie: String) =
     if(cookie == null) // lets be defensive ...
@@ -191,12 +249,12 @@ class ToughCookieBakery(_serverSecret: Array[Byte], _sessionKey: String) extends
         else {
 
           val k = 
-            hmacSha1(userIdInCookie, expirationTimeInCookie)(serverSecret)
+            hmacSha1(userIdInCookie, |, expirationTimeInCookie)(serverSecret)
 
           //println("k :" + k.value)
 
           val computedSinature = 
-            hmacSha1(userIdInCookie, expirationTimeInCookie, decryptData(dataInCookie)(k), sessionKey)(k)
+            hmacSha1(userIdInCookie, |, expirationTimeInCookie, |, decryptData(dataInCookie)(k), |, sessionKey)(k)
 
           //println("verif : \n_ \n_" << (signatureInCookie.value,computedSinature.value))
 
@@ -216,12 +274,12 @@ class ToughCookieBakery(_serverSecret: Array[Byte], _sessionKey: String) extends
     val data = _data : CryptoField
 
     val k = 
-      hmacSha1(userId, expiryTime)(serverSecret)
+      hmacSha1(userId, |, expiryTime)(serverSecret)
 
     //println("k :" + k.value)
 
     val signature = 
-      hmacSha1(userId, expiryTime, encryptData(data)(k), sessionKey)(k)
+      hmacSha1(userId, |, expiryTime, |, encryptData(data)(k), |, sessionKey)(k)
 
     //println("sig : _" + signature.value)
 
@@ -237,55 +295,6 @@ class ToughCookieBakery(_serverSecret: Array[Byte], _sessionKey: String) extends
     else data
 
 }
-
-
-object SecureSessionToken extends Logging {
-
-  def newConfidentialSessionToken(l: IdentityTrustLevel) = 
-    Util.newGuid + "&" + l.numericValue
-  
-  // Some(secureSessionId, verifiedIdentityTrustLevel)
-  private def parseConfidentialSessionToken(data: String) =
-    try {
-      data.split('&').toList match {
-        case List(secureSessionId, verifiedIdentityTrustLevel) => 
-          Some(secureSessionId, IdentityTrustLevel.decode(verifiedIdentityTrustLevel))
-        case _ => None
-      }
-    }
-    catch {
-      case e: Exception => {
-        logWarn("invalid confidentialSessionToken _." << data)
-        None
-      }
-    }
-
-  
-
-  def validateAndExtend(cookieValue: String, serverSecretKey: Array[Byte], sslSessionId: String, sessionMaxIdleTime: Int) = 
-    Errors.trap("Invalid secureSessionToken _." << cookieValue) {
-
-      val b = new ToughCookieBakery(serverSecretKey, sslSessionId)
-      b.validate(cookieValue) match {
-        case (s @ ToughCookieStatus.Invalid, _) => (s, None)
-        case (s @ ToughCookieStatus.Expired, _) => (s, None)
-        case (s @ ToughCookieStatus.Valid, Some((expiryTime, data, userId))) => 
-          parseConfidentialSessionToken(data) match {
-            case None => (ToughCookieStatus.Invalid, None)
-            case Some((secureSessionId, verifiedIdentityTrustLevel)) => 
-              (s, Some(new SecureSessionToken(userId, data, b.bake(userId, sessionMaxIdleTime, data), secureSessionId, verifiedIdentityTrustLevel)))
-        }
-      }
-    }
-}
-
-class SecureSessionToken(
-    val userId: String, 
-    val confidentialSessionToken: String, 
-    val extendedToken: String, 
-    val secureSessionId: String, 
-    val verifiedIdentityTrustLevel: IdentityTrustLevel)
-
 
 object ToughCookieBakery {
   

@@ -1,15 +1,16 @@
 package com.strong_links.scalaforms
 
 import com.strong_links.core._
-
 import com.strong_links.scalaforms.schema._
 import com.strong_links.scalaforms.squeryl.SquerylFacade._
 import javax.servlet.http.HttpSession
 import unfiltered.request._
+import unfiltered.{Cookie => UCookie}
 import javax.servlet.http.HttpServletRequest
 import com.sun.org.apache.xalan.internal.xsltc.compiler.Output
 import java.io.PrintWriter
 import javax.servlet.http.HttpSession
+import scala.collection.mutable.ArrayBuffer
 
 trait OutputContext {
   val i18nLocale: I18nLocale
@@ -17,28 +18,62 @@ trait OutputContext {
   def authId: String
 }
 
-
-
 class InteractionContext[+L <: IdentityTrustLevel](
     val identityTrustLevel: L,
     _insecureSessionId: Option[String],
     _correlatedUserId: Option[String],
-    _userId: Option[String]) {
+    _userId: Option[String],
+    inputCookies: Seq[UCookie]) {
 
   def correlatedUserId(implicit ev: L <:< CorrelatedWithLowTrust): Option[String] = _correlatedUserId
 
   def userId(implicit ev: L <:< WeaklyAuthenticated): String = _userId.get
+
+  private val outgoingCookies = new ArrayBuffer[(String,CookieFormater[_])]
+
+  def sendCookie[C](c: C)(implicit formater: CookieFormater[C]) {
+    val encodedValue = formater.encode(c)
+    outgoingCookies.append((encodedValue, formater))
+  }
+
+  def readCookie[C](implicit formater: CookieFormater[C]) =
+    inputCookies.find(_.name == formater.cookieName).flatMap(uc => formater.decode(uc.value))
+}
+
+trait CookieFormater[T] {
+  def cookieName: String
+  def maxAgeInSeconds: Int
+  def encode(t: T): String
+  def decode(s: String): Option[T]
+}
+
+trait SimpleCookieFormater[T] extends CookieFormater[T] {
+  
+  def separator = ":"
+    
+  def encode(t: T): String =
+    toList(t).mkString(separator)
+
+  def decode(s: String) = 
+    fromList(s.split(separator).toList)
+
+  def toList(t: T): List[String]
+  
+  def fromList(l: List[String]): Option[T]  
 }
 
 case class ReceiveContext[A](seedObject: A, postArgs: Map[String,Seq[String]])
 
 case class FormPostResult[+A](isOk: Boolean, message: Option[I18n], nextUri: Option[Uri], errorStructure: A)
 
-case class FormRenderContext[A,+B](model: A, postResult: Option[FormPostResult[B]], out: ServerOutputStream) {
+class FormRenderContext[A,+B](val model: A, val postResult: Option[FormPostResult[B]], val out: ServerOutputStream) {
   def mapReceiveError[R](f: (I18n,B) => R) = postResult.foreach { pr =>
     f(pr.message.get, pr.errorStructure)
   }
 }
+
+class LoginFormRenderContext[A,+B](_model: A, _postResult: Option[FormPostResult[B]], _out: ServerOutputStream, val validPersistentLoginAvailable: Boolean)
+ extends FormRenderContext(_model, _postResult, _out)
 
 case class RenderContext[A](model: A, out: ServerOutputStream)
 
@@ -82,20 +117,22 @@ object LoginForm {
     def receive[L <: IdentityTrustLevel](receiveFunc: ReceiveContext[A] => LoginResult[L])(implicit idl: IdentityTrustLevelEvidence[L]) =
       new LoginFormReceiver(prepareFunc, receiveFunc, idl.l)
   }
-  
+
   class LoginFormReceiver[A,L <: IdentityTrustLevel](prepareFunc: () => A, receiveResultFunc: ReceiveContext[A] => LoginResult[L], resultingIdentityLevel: L) {
-  
-    def render(f: FormRenderContext[A,FormPostResult[LoginResult[L]]] => Unit): LoginInteraction[L] =
+
+    def render(f: LoginFormRenderContext[A,FormPostResult[LoginResult[L]]] => Unit): LoginInteraction[L] =
       new AuthFormFuncs[A,L](resultingIdentityLevel, prepareFunc, receiveResultFunc, f)
   }
-  
+
   class AuthFormFuncs[A,L <: IdentityTrustLevel]
-   (maximalTrustLevel: L, prepareFunc: () => A, receiveResultFunc: ReceiveContext[A] => LoginResult[L], renderFunc: FormRenderContext[A,FormPostResult[LoginResult[L]]] => Unit) 
+   (maximalTrustLevel: L, prepareFunc: () => A, receiveResultFunc: ReceiveContext[A] => LoginResult[L], renderFunc: LoginFormRenderContext[A,FormPostResult[LoginResult[L]]] => Unit) 
      extends LoginInteraction[L](maximalTrustLevel) {
+
+    def processGet(out: ServerOutputStream) {}
     
-    def processGet(out: ServerOutputStream) {
+    def processGet(out: ServerOutputStream, validPersisentLoginPresent: Boolean) {
       val a = prepareFunc()
-      renderFunc(FormRenderContext(a, None, out))
+      renderFunc(new LoginFormRenderContext(a, None, out, validPersisentLoginPresent))
     }
 
     /**
@@ -112,7 +149,7 @@ object LoginForm {
           case LoginFailure(msg,_)                 => FormPostResult(true, Some(msg), None, LoginFailure(msg)) 
         }
 
-      (postRes, (out: ServerOutputStream) => FormRenderContext(a, Option(convertedRes), out))
+      (postRes, (out: ServerOutputStream) => new FormRenderContext(a, Option(convertedRes), out))
     }
   }
 }
@@ -137,7 +174,7 @@ object Form {
 
     def processGet(out: ServerOutputStream) {
       val a = prepareFunc()
-      renderFunc(FormRenderContext(a, None, out))
+      renderFunc(new FormRenderContext(a, None, out))
     }
 
     /**
@@ -148,7 +185,7 @@ object Form {
       // transform a with post results...
       val postRes = receiveResultFunc(ReceiveContext(a, postArgs))
 
-      (postRes, (out: ServerOutputStream) => renderFunc(FormRenderContext(a, Some(postRes), out)))
+      (postRes, (out: ServerOutputStream) => renderFunc(new FormRenderContext(a, Some(postRes), out)))
     }
   }
 }

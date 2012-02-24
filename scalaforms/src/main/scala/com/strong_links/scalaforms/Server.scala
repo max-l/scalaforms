@@ -120,7 +120,8 @@ trait Server extends Logging {
         interactionDefinition.requiredTrustLevel,
         cm.anonymousNonSecureSessionId,
         cm.userCorrelationId,
-        cm.secureSessionToken.map(_.userId))
+        cm.secureSessionToken.map(_.userId),
+        inputCookies)
 
     val interaction = interactionDefinition.createInteraction(ic)
 
@@ -155,6 +156,7 @@ trait Server extends Logging {
       else interaction match {
         case i@ LoginInteraction(_) if isPost =>
           processLoginResult(i, i.processPost(params))
+        //case i@ LoginInteraction(_) => val v = validatePersistentLogin(cm.persistentLoginToken) i.processGet()
         case fi: FormInteraction if isPost => {
           fi.processPost(params) match {
             case (FormPostResult(true, _, Some(Uri(nextUri)), _), onFailRenderer) =>

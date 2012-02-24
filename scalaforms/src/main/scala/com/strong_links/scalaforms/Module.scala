@@ -7,11 +7,12 @@ import com.strong_links.core._
 class Module[L <: IdentityTrustLevel](val defaultIdentityTrustLevel: L) {
 
 
-  implicit val identityTrustLevelEvidence0 = IdentityTrustLevelEvidence(Unidentified)
-  implicit val identityTrustLevelEvidence1 = IdentityTrustLevelEvidence(AnonymouslyIdentified)
-  implicit val identityTrustLevelEvidence2 = IdentityTrustLevelEvidence(StronglyAuthenticated)
-  implicit val identityTrustLevelEvidence3 = IdentityTrustLevelEvidence(SuperStronglyAuthenticated)
-  implicit val identityTrustLevelEvidence4 = IdentityTrustLevelEvidence(DualStronglyAuthenticated)
+  implicit val identityTrustLevelEvidence0 = IdentityTrustLevelEvidence[Unidentified](Unidentified)
+  implicit val identityTrustLevelEvidence1 = IdentityTrustLevelEvidence[AnonymouslyIdentified](AnonymouslyIdentified)
+  implicit val identityTrustLevelEvidence2 = IdentityTrustLevelEvidence[WeaklyAuthenticated](WeaklyAuthenticated)
+  implicit val identityTrustLevelEvidence3 = IdentityTrustLevelEvidence[StronglyAuthenticated](StronglyAuthenticated)
+  implicit val identityTrustLevelEvidence4 = IdentityTrustLevelEvidence[SuperStronglyAuthenticated](SuperStronglyAuthenticated)
+  implicit val identityTrustLevelEvidence5 = IdentityTrustLevelEvidence[DualStronglyAuthenticated](DualStronglyAuthenticated)
 
   // Nécéssaire ???
   //def ok = new FormPostResult(true, None, None, Unit)
