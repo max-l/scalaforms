@@ -175,7 +175,13 @@ trait Server extends Logging {
         case _ => invalidRequest
       }
 
-    prependCookies(renderFuncOrRedirect, cm.outgoingAnonymousNonSecureSessionIdCookieIfRequired)
+    val outCookies = cm.outgoingAnonymousNonSecureSessionIdCookieIfRequired ++ 
+      ic.outgoingCookies.map( t => {
+        val (value, formater) = t
+        UCookie(formater.cookieName, value).maxAge(formater.maxAgeInSeconds)
+      }).toSeq
+    
+    prependCookies(renderFuncOrRedirect, outCookies)
   }
 
   def start(port: Int, host: String, staticResourceNodes: Seq[StaticResourceNode]): Unit = {

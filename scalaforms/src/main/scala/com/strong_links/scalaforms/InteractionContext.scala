@@ -29,7 +29,10 @@ class InteractionContext[+L <: IdentityTrustLevel](
 
   def userId(implicit ev: L <:< WeaklyAuthenticated): String = _userId.get
 
-  private val outgoingCookies = new ArrayBuffer[(String,CookieFormater[_])]
+  /**
+   * ("encodedCookieValue", CookieFormater[_])
+   */
+  private [scalaforms] val outgoingCookies = new ArrayBuffer[(String,CookieFormater[_])]
 
   def sendCookie[C](c: C)(implicit formater: CookieFormater[C]) {
     val encodedValue = formater.encode(c)
@@ -37,7 +40,7 @@ class InteractionContext[+L <: IdentityTrustLevel](
   }
 
   def readCookie[C](implicit formater: CookieFormater[C]) =
-    inputCookies.find(_.name == formater.cookieName).flatMap(uc => formater.decode(uc.value))
+    inputCookies.find(_.name == formater.cookieName).flatMap(uc => formater.decode(uc.value)) 
 }
 
 trait CookieFormater[T] {

@@ -14,6 +14,13 @@ class Module[L <: IdentityTrustLevel](val defaultIdentityTrustLevel: L) {
   implicit val identityTrustLevelEvidence4 = IdentityTrustLevelEvidence[SuperStronglyAuthenticated](SuperStronglyAuthenticated)
   implicit val identityTrustLevelEvidence5 = IdentityTrustLevelEvidence[DualStronglyAuthenticated](DualStronglyAuthenticated)
 
+  implicit val qidentityTrustLevelEvidence0 = IdentityTrustLevelEvidence(Unidentified)
+  implicit val widentityTrustLevelEvidence1 = IdentityTrustLevelEvidence(AnonymouslyIdentified)
+  implicit val eidentityTrustLevelEvidence2 = IdentityTrustLevelEvidence(WeaklyAuthenticated)
+  implicit val ridentityTrustLevelEvidence3 = IdentityTrustLevelEvidence(StronglyAuthenticated)
+  implicit val tidentityTrustLevelEvidence4 = IdentityTrustLevelEvidence(SuperStronglyAuthenticated)
+  implicit val yidentityTrustLevelEvidence5 = IdentityTrustLevelEvidence(DualStronglyAuthenticated)
+  
   // Nécéssaire ???
   //def ok = new FormPostResult(true, None, None, Unit)
 

@@ -23,6 +23,18 @@ object LastNameDomain extends NameDomain {
   override val label = I18n("Last name")
 }
 
+object NickNameDomain extends NameDomain {
+  override val label = I18n("Nick name")
+}
+
+object FacebookIdDomain extends LongDomain {
+  override val label = I18n("email")
+}
+
+object EmailAddressDomain extends StringDomain {
+  override val label = I18n("email")
+}
+
 object PasswordDomain extends StringDomain {
   val label = I18n("Password")
 }
