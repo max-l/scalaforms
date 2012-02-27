@@ -156,7 +156,6 @@ trait Server extends Logging {
       else interaction match {
         case i@ LoginInteraction(_) if isPost =>
           processLoginResult(i, i.processPost(params))
-        //case i@ LoginInteraction(_) => val v = validatePersistentLogin(cm.persistentLoginToken) i.processGet()
         case fi: FormInteraction if isPost => {
           fi.processPost(params) match {
             case (FormPostResult(true, _, Some(Uri(nextUri)), _), onFailRenderer) =>

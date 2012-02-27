@@ -75,9 +75,6 @@ class FormRenderContext[A,+B](val model: A, val postResult: Option[FormPostResul
   }
 }
 
-class LoginFormRenderContext[A,+B](_model: A, _postResult: Option[FormPostResult[B]], _out: ServerOutputStream, val validPersistentLoginAvailable: Boolean)
- extends FormRenderContext(_model, _postResult, _out)
-
 case class RenderContext[A](model: A, out: ServerOutputStream)
 
 sealed trait LoginResult[+L <: IdentityTrustLevel]
@@ -91,15 +88,13 @@ case class IdentityTrustLevelEvidence[L](l: L)
 class InteractionDefinition[L <: IdentityTrustLevel, I <: Interaction](val requiredTrustLevel: IdentityTrustLevel, f: InteractionContext[L] => I) {
 
   def createInteraction(ic: InteractionContext[L]) = f(ic)
-} 
+}
 
 
 object GetMethod {
   def receive[A](f: Map[String,Seq[String]] => A) = new GetMethodFunc[A](f)
 
-  class GetMethodFunc[A](f: Map[String,Seq[String]] => A) {
-
-  }
+  class GetMethodFunc[A](f: Map[String,Seq[String]] => A)
 
   def receiveExternalLogin[L <: IdentityTrustLevel](f: Map[String,Seq[String]] => LoginResult[L])(implicit idl: IdentityTrustLevelEvidence[L]) =
     new LoginGetInteraction[L](idl.l) {
@@ -123,19 +118,17 @@ object LoginForm {
 
   class LoginFormReceiver[A,L <: IdentityTrustLevel](prepareFunc: () => A, receiveResultFunc: ReceiveContext[A] => LoginResult[L], resultingIdentityLevel: L) {
 
-    def render(f: LoginFormRenderContext[A,FormPostResult[LoginResult[L]]] => Unit): LoginInteraction[L] =
+    def render(f: FormRenderContext[A,FormPostResult[LoginResult[L]]] => Unit): LoginInteraction[L] =
       new AuthFormFuncs[A,L](resultingIdentityLevel, prepareFunc, receiveResultFunc, f)
   }
 
   class AuthFormFuncs[A,L <: IdentityTrustLevel]
-   (maximalTrustLevel: L, prepareFunc: () => A, receiveResultFunc: ReceiveContext[A] => LoginResult[L], renderFunc: LoginFormRenderContext[A,FormPostResult[LoginResult[L]]] => Unit) 
+   (maximalTrustLevel: L, prepareFunc: () => A, receiveResultFunc: ReceiveContext[A] => LoginResult[L], renderFunc: FormRenderContext[A,FormPostResult[LoginResult[L]]] => Unit) 
      extends LoginInteraction[L](maximalTrustLevel) {
 
-    def processGet(out: ServerOutputStream) {}
-    
-    def processGet(out: ServerOutputStream, validPersisentLoginPresent: Boolean) {
+    def processGet(out: ServerOutputStream) {
       val a = prepareFunc()
-      renderFunc(new LoginFormRenderContext(a, None, out, validPersisentLoginPresent))
+      renderFunc(new FormRenderContext(a, None, out))
     }
 
     /**
