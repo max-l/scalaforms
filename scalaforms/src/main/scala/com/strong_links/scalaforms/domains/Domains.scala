@@ -7,6 +7,10 @@ import com.strong_links.scalaforms._
 
 abstract class KeyDomain extends LongDomain
 
+object KeyDomain extends KeyDomain {
+  val label = I18n("id")
+}
+
 class NameDomain extends StringDomain {
   val label = I18n("Name")
 }
@@ -27,8 +31,16 @@ object NickNameDomain extends NameDomain {
   override val label = I18n("Nick name")
 }
 
+object TitleDomain extends NameDomain {
+  override val label = I18n("Title")
+}
+
+class UrlDomain extends StringDomain {
+  override val label = I18n("url")
+}
+
 object FacebookIdDomain extends LongDomain {
-  override val label = I18n("email")
+  override val label = I18n("Facebook Id")
 }
 
 object EmailAddressDomain extends StringDomain {
@@ -37,6 +49,14 @@ object EmailAddressDomain extends StringDomain {
 
 object PasswordDomain extends StringDomain {
   val label = I18n("Password")
+}
+
+object PasswordHashDomain extends StringDomain {
+  val label = I18n("Password hash")
+}
+
+object PasswordSaltDomain extends StringDomain {
+  val label = I18n("Salt")
 }
 
 object StackDumpDomain extends StringDomain {
@@ -83,6 +103,8 @@ object FailedLoginAttemptsDomain extends IntDomain {
 object PreferredLanguageCodeDomain extends StringDomain {
   val label = I18n("Preferred language")
 }
+
+abstract class MarkdownTextDomain extends StringDomain
 
 object HttpSessionIdDomain extends StringDomain {
   val label = I18n("Http session id")

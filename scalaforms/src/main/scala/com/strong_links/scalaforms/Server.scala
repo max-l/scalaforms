@@ -101,7 +101,6 @@ trait Server extends Logging {
 
     def invalidRequest = Errors.fatal("Invalid request _." << originalPath)
 
-
     val uriExtracter = new UriExtracter(originalPath)
     val interactionDefinition = uriExtracter.interactionDefinition
     val inputCookies = httpRequest.cookies
@@ -213,9 +212,26 @@ trait Server extends Logging {
 
 object DebugTls extends ThreadLocalStack[(HttpRequest[HttpServletRequest],Map[String,Seq[String]])] {
 
+  private def headers(req: HttpRequest[HttpServletRequest]) = {
+    
+    import scala.collection.JavaConversions._
+    import req.underlying._
+
+    val hNames = getHeaderNames.asInstanceOf[java.util.Enumeration[String]].toSeq
+
+     for(n <- hNames)
+       yield (n, getHeader(n))
+  }
+  
   def dumpAll(out: ServerOutputStream) = map { x =>
     val (req, args) = x
     out <<("Http Method: _\n" <<  req.underlying.getMethod())
+    out << "Headers : \n"
+
+    for((hName,hValue) <- headers(req)) {
+      out <<("  _ -> _\n" << (hName, hValue))
+    }
+
     out <<("URL: _\n" <<  req.underlying.getRequestURL())
     out << req.cookies.sortBy(_.name).map( c => "_ -> _" <<< (c.name, c.value)).mkString("Cookies : \n  ", "\n  ", "")
 
