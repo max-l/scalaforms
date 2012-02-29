@@ -11,15 +11,9 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.Output
 import java.io.PrintWriter
 import javax.servlet.http.HttpSession
 
-trait OutputContext {
-  val i18nLocale: I18nLocale
-  val out: ServerOutputStream
-  def authId: String
-}
-
 class InteractionContext(var iws: IdentityWithinServer, val identityManager: IdentityManager,
-  val uriExtracter: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], val i18nLocale: I18nLocale,
-  params: Map[String, Seq[String]], val out: ServerOutputStream, val interactionDefinition: InteractionDefinition) extends OutputContext {
+                         val uriExtracter: UriExtracter, val httpRequest: HttpRequest[HttpServletRequest], val i18nLocale: I18nLocale,
+                         params: Map[String, Seq[String]], val out: ServerOutputStream, val interactionDefinition: InteractionDefinition) extends OutputContext {
 
   override def toString = iws.toString
 

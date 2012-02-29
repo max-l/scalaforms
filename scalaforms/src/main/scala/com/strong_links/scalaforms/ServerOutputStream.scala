@@ -7,7 +7,7 @@ object ServerOutputStream {
   val flushSteps = List(500, 1000, 2000, 5000, 10000, 25000, 50000, 100000)
 }
 
-class ServerOutputStream(os: OutputStream) {
+class ServerOutputStream(os: OutputStream) extends WriteableOutputStream {
 
   import ServerOutputStream._
 
@@ -15,7 +15,7 @@ class ServerOutputStream(os: OutputStream) {
   private var currentFlushStep = flushSteps
 
   def write(s: String) {
-    val b = s.getBytes("UTF8")
+    val b = s.getBytes("UTF-8")
     try {
       os.write(b)
       bytesWritten += b.length

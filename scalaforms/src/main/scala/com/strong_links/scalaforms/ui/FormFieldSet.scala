@@ -13,14 +13,14 @@ class FormFieldSet(val formFields: FormField*) extends DisplayAttributes[FormFie
   def defaultRenderer(oc: OutputContext) {
     _label match {
       case None =>
-        forms.fieldSetStart(oc)
+        forms.fieldSetStart.emit(oc)
       case Some(label) =>
-        forms.fieldSetStartWithLabel(label)(oc)
+        forms.fieldSetStartWithLabel(label).emit(oc)
     }
-    forms.beforeFields(oc)
+    forms.beforeFields.emit(oc)
     formFields.foreach(_.render(oc))
-    forms.afterFields(oc)
-    forms.fieldSetEnd(oc)
+    forms.afterFields.emit(oc)
+    forms.fieldSetEnd.emit(oc)
   }
 }
 

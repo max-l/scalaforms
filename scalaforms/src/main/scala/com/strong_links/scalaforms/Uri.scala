@@ -5,21 +5,16 @@ import com.strong_links.core._
 import java.lang.reflect.Method
 
 class Uri(val uri: String) {
-  def format(implicit oc: OutputContext) = Uri.format(uri, oc.authId)
   override def toString = uri
 }
 
-class AuthenticatedUri(uri: String, authId: String) extends Uri(uri) {
-  override def format(implicit oc: OutputContext) = Uri.format(uri, authId)
-}
-
 class StaticUri(packageName: String, path: String) extends Uri(StaticResourceNode.prefix + packageName) {
-  override def format(implicit oc: OutputContext) = Uri.format(uri, oc.authId)
+  override def toString = Uri.format(uri)
 }
 
 object Uri {
 
-  def format(uri: String, authId: String) = uri + "?authId=" + authId
+  def format(uri: String) = uri
 
   def apply(method: Method, args: Array[Object]): Uri = {
 
@@ -38,9 +33,6 @@ object Uri {
     args.foreach(a => { b += '/'; b.append(a) })
     new Uri(b.toString)
   }
-
-  def apply(method: Method, args: Array[Object], ic: InteractionContext): AuthenticatedUri =
-    new AuthenticatedUri(apply(method, args).uri, ic.authId)
 }
 
 object UriExtracter {
@@ -108,7 +100,7 @@ class UriExtracter(val uri: String) {
 
   def invokeInteraction(ic: InteractionContext) = interactionDefinition.f(ic)
 
-  def toUri(ic: InteractionContext) = Uri(method, args, ic)
+  def toUri = Uri(method, args)
 
   def fqn = method.getDeclaringClass.getCanonicalName + "." + method.getName
 }
