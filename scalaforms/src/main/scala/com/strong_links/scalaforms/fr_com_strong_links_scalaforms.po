@@ -1,6 +1,6 @@
+
 msgid ""
-msgstr ""
-"Project-Id-Version: com.strong_links.scalaforms\n"
+msgstr "Project-Id-Version: com.strong_links.scalaforms\n"
 "PO-Revision-Date: 2012-02-01 12:03:09-0500\n"
 "Language: fr\n"
 "Language-Team: fr <email@address>\n"
@@ -8,4 +8,107 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n > 1\n"
+"Plural-Forms: nplurals=2; plural=n > 1"
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:40
+msgid "Creation transaction id"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:51
+msgid "Database key"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:61
+msgid "End date/time"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:69
+msgid "Failed login attempts"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:46
+msgid "Failure"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:20
+msgid "First name"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:85
+msgid "Fully qualified name"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\SystemInteractions.scala:30
+msgid "Hello world"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\SystemInteractions.scala:13
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\SystemInteractions.scala:14
+msgid "Hello world!"
+msgid_plural "Hello world!"
+msgstr[0] ""
+msgstr[1] ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:77
+msgid "Http session id"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:44
+msgid "In Progress"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:93
+msgid "Interaction arguments"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:89
+msgid "Interaction fully qualified name"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:24
+msgid "Last name"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:36
+msgid "Last update transaction id"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:12
+msgid "Name"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:28
+msgid "Password"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:73
+msgid "Preferred language"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:32
+msgid "Stack dump"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:57
+msgid "Start date/time"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:65
+msgid "Status"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:45
+msgid "Success"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:47
+msgid "Timeout"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:16
+msgid "Username"
+msgstr ""
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:81
+msgid "uuid"
+msgstr ""

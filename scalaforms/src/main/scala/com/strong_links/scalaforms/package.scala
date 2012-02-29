@@ -57,6 +57,4 @@ package object scalaforms {
   object identityFieldTransformer extends FieldTransformer {
     def transform(field: BaseField[_]): FieldRendering = field
   }
-
-  implicit val catalog = PackageI18nConfig.catalog
 }

@@ -3,6 +3,7 @@ package com.strong_links.scalaforms.ui
 import com.strong_links.core._
 
 import com.strong_links.scalaforms._
+import com.strong_links.scalaforms.i18nCatalog._
 import com.strong_links.scalaforms.templates.standard.forms
 
 class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] with FieldRendering {
@@ -79,7 +80,7 @@ class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] wi
   def solidaryWith(formField: FormField) {
     this._solidaryFormField match {
       case Some(sf) => error("Already solidary with _." << sf)
-      case _ =>
+      case _        =>
     }
     _solidaryFormField = Some(formField)
   }
@@ -87,15 +88,15 @@ class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] wi
   def notSolidary {
     this._solidaryFormField match {
       case None => error("Not solidary with a form field.")
-      case _ =>
+      case _    =>
     }
     _solidaryFormField = None
   }
 
   protected def defaultRenderer(oc: OutputContext) {
-//    forms.field1(field)(oc)
-//    forms.field2(oc)
-//    forms.field3(field)(oc)
+    //    forms.field1(field)(oc)
+    //    forms.field2(oc)
+    //    forms.field3(field)(oc)
   }
 
   def renderLabel(oc: OutputContext) {

@@ -1,6 +1,7 @@
 package com.strong_links.scalaforms
 
 import com.strong_links.core._
+import com.strong_links.scalaforms.i18nCatalog._
 import com.strong_links.scalaforms.schema.User
 
 trait SystemInteractions extends Interactions
@@ -9,8 +10,8 @@ object SystemInteractions extends InteractionsEnabler[SystemInteractions] with S
 
 trait Poutine extends Interactions {
 
-  def toto = I18nPlural("""Hello world!""", 23).toString
-  def totozz = I18nPlural("""Hello world!""", 23).toString
+  def toto = i18nPlural("""Hello world!""", 23).toString
+  def totozz = i18nPlural("""Hello world!""", 23).toString
 
   def plus(i: Int, j: Int) = Interaction { implicit ctx =>
     GetPage prepare {
@@ -26,7 +27,7 @@ trait Poutine extends Interactions {
       data
     } renderWith { data =>
       com.strong_links.scalaforms.templates.misc.poutine.plus(
-        Util.nowAsString, Some("1"), Some("2"), Some("3"), I18n("Hello world"), data.user, data)
+        Util.nowAsString, Some("1"), Some("2"), Some("3"), i18n("Hello world"), data.user, data)
     }
   }
 
