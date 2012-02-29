@@ -48,13 +48,12 @@ trait Server extends Logging {
     def intent = {
       case httpRequest: HttpRequest[_] =>
         val (isPost, originalPath, params) = httpRequest match {
-          case GET(Path(p) & Params(params)) => (false, p, params)
+          case GET(Path(p) & Params(params))  => (false, p, params)
           case POST(Path(p) & Params(params)) => (true, p, params)
-          case _ => Errors.fatal("Unsupported request.")
+          case _                              => Errors.fatal("Unsupported request.")
         }
 
         val TrimSemicolon(path) = originalPath
-
 
         logInfo("Intercepting URI _." << path)
         logDebug("Raw URI _." << originalPath)
@@ -65,7 +64,7 @@ trait Server extends Logging {
           createInteractionContext = { (iws, sos) =>
             Errors.trap("Creating interaction context for URI _" << originalPath) {
               logDebug("will create InteractionContext for _." << iws.authId)
-              val i18nLocale = iws.systemAccount.preferredI18nLocale              
+              val i18nLocale = I18nStock.fr_CA
               new InteractionContext(iws, _identityManager, ux, httpRequest, i18nLocale, params, sos, ux.interactionDefinition)
             }
           },
