@@ -38,7 +38,9 @@ function change(newText) {
   document.getElementById('zone6').value = newText.toHtml();
 }
 </script>
-<!-- def plus($now, $a, $b, $sum, $hello, $user, $data) -->
+<!-- def xxx($name) -->
+Hello $name!
+<!-- def plus($now, $a, $b, $sum, $hello, $user, $data, $template) -->
 <p />
 <h3>Ceci est généré avec un template le $now</h3>
 <p />
@@ -48,6 +50,8 @@ $a + $b = $sum
 <p />
 {Hello my friend!!!} 
 $hello: I18n
+<p />
+$template:Template
 <p />
 $user.firstName:Label
 <p />
