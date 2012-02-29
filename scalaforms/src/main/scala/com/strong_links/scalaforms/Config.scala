@@ -3,21 +3,24 @@ package com.strong_links.scalaforms
 import com.strong_links.core._
 import java.io.File
 
-case class StaticResourceNode(contextName: String, urlPath: String) {
+object StaticResourceNode {
 
-  if (contextName.isEmpty)
-    Errors.fatal("No context name was provided.")
+  val prefix = "/static."
 
-  if (contextName.exists(!_.isLower))
-    Errors.fatal("Invalid context name _" << contextName, "Only lowercase letters are allowed here.")
+  def apply(packageName: String, urlPath: String) = new StaticResourceNode(packageName, urlPath)
+}
 
-  val url = {
-    //val node = new File(OS.translatePath(urlPath))
-    val node = new File(urlPath)
-    IO.checkForExistingDirectory(node)
-    node.toURI.toURL
-  }
+class StaticResourceNode(packageName: String, urlPath: String) {
 
-  override def toString = "StaticResourceNode(context _, url _)" << (contextName, url)
+  if (packageName.isEmpty)
+    Errors.fatal("No package name was provided.")
+
+  I18nConfig.checkPackageSegments(Util.split(packageName, '.'))
+
+  val context = StaticResourceNode.prefix + packageName
+
+  val url = IO.checkForExistingDirectory(new File(new File(urlPath).path)).toURI.toURL
+
+  override def toString = "StaticResourceNode(package _, url _)" << (packageName, url)
 }
 

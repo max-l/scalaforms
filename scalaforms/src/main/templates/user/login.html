@@ -1,3 +1,8 @@
-<!-- def showLogin($login) -->
-Username : $login.username
-Password : $login.password
+<!-- def showLogin($login) preserveComments--><!-- Nice comment. -->
+<!-- ifdef $login.username -->
+{Username:} $login.username
+<!-- endif -->
+{Password:} $login.password: Html
+<!-- ifdef $login.username -->
+$login.username
+<!-- endif -->

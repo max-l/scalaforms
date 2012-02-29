@@ -4,125 +4,126 @@ package com.strong_links.scalaforms.domains
 import com.strong_links.core._
 import com.strong_links.scalaforms
 import com.strong_links.scalaforms._
+import com.strong_links.scalaforms.i18nCatalog._
 
 abstract class KeyDomain extends LongDomain
 
 object KeyDomain extends KeyDomain {
-  val label = I18n("id")
+  val label = i18n("id")
 }
 
 class NameDomain extends StringDomain {
-  val label = I18n("Name")
+  val label = i18n("Name")
 }
 
 object UsernameDomain extends NameDomain {
-  override val label = I18n("Username")
+  override val label = i18n("Username")
 }
 
 object FirstNameDomain extends NameDomain {
-  override val label = I18n("First name")
+  override val label = i18n("First name")
 }
 
 object LastNameDomain extends NameDomain {
-  override val label = I18n("Last name")
+  override val label = i18n("Last name")
 }
 
 object NickNameDomain extends NameDomain {
-  override val label = I18n("Nick name")
+  override val label = i18n("Nick name")
 }
 
 object TitleDomain extends NameDomain {
-  override val label = I18n("Title")
+  override val label = i18n("Title")
 }
 
 class UrlDomain extends StringDomain {
-  override val label = I18n("url")
+  override val label = i18n("url")
 }
 
 object FacebookIdDomain extends LongDomain {
-  override val label = I18n("Facebook Id")
+  override val label = i18n("Facebook Id")
 }
 
 object EmailAddressDomain extends StringDomain {
-  override val label = I18n("email")
+  override val label = i18n("email")
 }
 
 object PasswordDomain extends StringDomain {
-  val label = I18n("Password")
+  val label = i18n("Password")
 }
 
 object PasswordHashDomain extends StringDomain {
-  val label = I18n("Password hash")
+  val label = i18n("Password hash")
 }
 
 object PasswordSaltDomain extends StringDomain {
-  val label = I18n("Salt")
+  val label = i18n("Salt")
 }
 
 object StackDumpDomain extends StringDomain {
-  val label = I18n("Stack dump")
+  val label = i18n("Stack dump")
 }
 
 object LastUpdateTransactionIdDomain extends KeyDomain {
-  val label = I18n("Last update transaction id")
+  val label = i18n("Last update transaction id")
 }
 
 object CreationTransactionIdDomain extends KeyDomain {
-  val label = I18n("Creation transaction id")
+  val label = i18n("Creation transaction id")
 }
 
 object CompletionStatusDomain extends I18nEnumeration {
-  val InProgress = Value(1, I18n("In Progress"))
-  val Success = Value(2, I18n("Success"))
-  val Failure = Value(3, I18n("Failure"))
-  val Timeout = Value(4, I18n("Timeout"))
+  val InProgress = Value(1, i18n("In Progress"))
+  val Success = Value(2, i18n("Success"))
+  val Failure = Value(3, i18n("Failure"))
+  val Timeout = Value(4, i18n("Timeout"))
 }
 
 trait DatabaseKeyDomain extends KeyDomain {
-  val label = I18n("Database key")
+  val label = i18n("Database key")
 }
 
 object DatabaseKeyDomain extends DatabaseKeyDomain
 
 object StartTimeDomain extends TimestampDomain {
-  val label = I18n("Start date/time")
+  val label = i18n("Start date/time")
 }
 
 object EndTimeDomain extends TimestampDomain {
-  val label = I18n("End date/time")
+  val label = i18n("End date/time")
 }
 
 object TransactionStatusDomain extends EnumerationDomain(CompletionStatusDomain) {
-  val label = I18n("Status")
+  val label = i18n("Status")
 }
 
 object FailedLoginAttemptsDomain extends IntDomain {
-  val label = I18n("Failed login attempts")
+  val label = i18n("Failed login attempts")
 }
 
 object PreferredLanguageCodeDomain extends StringDomain {
-  val label = I18n("Preferred language")
+  val label = i18n("Preferred language")
 }
 
 abstract class MarkdownTextDomain extends StringDomain
 
 object HttpSessionIdDomain extends StringDomain {
-  val label = I18n("Http session id")
-}  
+  val label = i18n("Http session id")
+}
 
 object UuidKeyDomain extends StringDomain {
-  val label = I18n("uuid")
+  val label = i18n("uuid")
 }
 
 object FqnDomain extends StringDomain {
-  val label = I18n("Fully qualified name")
+  val label = i18n("Fully qualified name")
 }
 
 object InteractionFqnDomain extends StringDomain {
-  val label = I18n("Interaction fully qualified name")
-}  
+  val label = i18n("Interaction fully qualified name")
+}
 
 object InteractionArgsDomain extends StringDomain {
-  val label = I18n("Interaction arguments")
+  val label = i18n("Interaction arguments")
   override def maxLength = Some(1024)
 }

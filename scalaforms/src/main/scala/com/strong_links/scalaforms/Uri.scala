@@ -5,12 +5,17 @@ import com.strong_links.core._
 import java.lang.reflect.Method
 
 
-
-case class Uri(uri: String) {
-  def format(implicit oc: OutputContext, ic: InteractionContext[_]) = Uri.format(uri, "")
+case class Uri(val uri: String) {
+  def format(implicit oc: OutputContext) = UriUtil.format(uri, oc.authId)
+  override def toString = uri
 }
 
-object Uri {
+
+class StaticUri(packageName: String, path: String) extends Uri(StaticResourceNode.prefix + packageName) {
+  override def format(implicit oc: OutputContext) = UriUtil.format(uri, oc.authId)
+}
+
+object UriUtil {
 
   def format(uri: String, authId: String) = uri
 
@@ -74,7 +79,7 @@ class UriExtracter(val uri: String) {
       Class.forName(fullClassName)
     } catch {
       case e: ClassNotFoundException =>
-        Errors.fatal("Module _ not callable from http, make sure it is extended by an InteractionsEnabler[__] object.\n_"
+        Errors.fatal("Module _ not callable from http.\n_"
           << (className, e.getMessage))
       case t => Errors.fatal(t, "Unexpected exception loading class _." << fullClassName)
     }
@@ -124,7 +129,7 @@ trait UriReferable[M] {
     val p = 
       Cache.map.put(objParentClass) { c =>
       Tweaks.makeInterceptor(objParentClass, (_, m, args) => {
-        uriOnTL.set(Uri(m, args)); null
+        uriOnTL.set(UriUtil(m, args)); null
       })
     }
     f(p.asInstanceOf[M])

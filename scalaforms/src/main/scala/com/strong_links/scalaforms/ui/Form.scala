@@ -2,6 +2,7 @@ package com.strong_links.scalaforms.ui
 
 import com.strong_links.core._
 import com.strong_links.scalaforms._
+import com.strong_links.scalaforms.i18nCatalog._
 import com.strong_links.scalaforms.templates.standard.forms
 
 class Form(val formFieldSets: FormFieldSet*) extends DisplayAttributes[Form] with FieldTransformer {
