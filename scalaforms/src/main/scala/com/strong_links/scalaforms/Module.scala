@@ -6,7 +6,6 @@ import com.strong_links.core._
 
 class Module[L <: IdentityTrustLevel](val defaultIdentityTrustLevel: L) {
 
-
   implicit val identityTrustLevelEvidence0 = IdentityTrustLevelEvidence[Unidentified](Unidentified)
   implicit val identityTrustLevelEvidence1 = IdentityTrustLevelEvidence[AnonymouslyIdentified](AnonymouslyIdentified)
   implicit val identityTrustLevelEvidence2 = IdentityTrustLevelEvidence[WeaklyAuthenticated](WeaklyAuthenticated)
@@ -20,7 +19,10 @@ class Module[L <: IdentityTrustLevel](val defaultIdentityTrustLevel: L) {
   implicit val ridentityTrustLevelEvidence3 = IdentityTrustLevelEvidence(StronglyAuthenticated)
   implicit val tidentityTrustLevelEvidence4 = IdentityTrustLevelEvidence(SuperStronglyAuthenticated)
   implicit val yidentityTrustLevelEvidence5 = IdentityTrustLevelEvidence(DualStronglyAuthenticated)
-  
+
+  def surroundServerCall[A](ic: InteractionContext[_], call: => A) = call
+
+
   // Nécéssaire ???
   //def ok = new FormPostResult(true, None, None, Unit)
 

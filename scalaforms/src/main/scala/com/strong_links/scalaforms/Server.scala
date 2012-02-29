@@ -101,7 +101,7 @@ trait Server extends Logging {
 
     def invalidRequest = Errors.fatal("Invalid request _." << originalPath)
 
-    val uriExtracter = new UriExtracter(originalPath)
+    val uriExtracter = new UriExtracter(originalPath) 
     val interactionDefinition = uriExtracter.interactionDefinition
     val inputCookies = httpRequest.cookies
     val sslSessionId = retrieveSslSessionId(httpRequest)
@@ -122,6 +122,9 @@ trait Server extends Logging {
         cm.secureSessionToken.map(_.userId),
         inputCookies)
 
+    def surroundCall[A](a: => A): A =
+      uriExtracter.module.surroundServerCall(ic, a)
+    
     val interaction = interactionDefinition.createInteraction(ic)
 
     val maxTrustLevelUpgradeIfAuthenticationForm = 
@@ -154,9 +157,9 @@ trait Server extends Logging {
         prependCookies(Redirect(getAuthenticatingUriFor(interactionDefinition.requiredTrustLevel)), Seq(cm.cookieForNextUriAfterAuth(originalPath)))
       else interaction match {
         case i@ LoginInteraction(_) if isPost =>
-          processLoginResult(i, i.processPost(params))
+          processLoginResult(i, surroundCall(i.processPost(params)))
         case fi: FormInteraction if isPost => {
-          fi.processPost(params) match {
+          surroundCall(fi.processPost(params)) match {
             case (FormPostResult(true, _, Some(Uri(nextUri)), _), onFailRenderer) =>
               Redirect(nextUri)
             case (FormPostResult(false, message, _, _), onFailRenderer) =>
@@ -165,11 +168,11 @@ trait Server extends Logging {
           }
         }
         case i: LogoutInteraction =>
-          prependCookies(createStreamer(i.processGet(_)), cm.seqOfStrongAuthTerminationCookiesIfAuthenticated)
+          prependCookies(createStreamer(surroundCall(i.processGet(_))), cm.seqOfStrongAuthTerminationCookiesIfAuthenticated)
         case i@ LoginGetInteraction(_) =>
-          processLoginResult(i, i.processLoginGet(params))
+          processLoginResult(i, surroundCall(i.processLoginGet(params)))
         case i: Interaction =>
-          createStreamer(i.processGet(_))
+          createStreamer(surroundCall(i.processGet(_)))
         case _ => invalidRequest
       }
 
