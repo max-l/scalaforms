@@ -80,13 +80,15 @@ trait Server extends Logging {
 
   def processUri(isPost: Boolean, originalPath: String, params: Map[String,Seq[String]], httpRequest: HttpRequest[javax.servlet.http.HttpServletRequest]) = {
 
+    val uriExtracter = new UriExtracter(originalPath)
+    
     def createStreamer(renderFunc: (ServerOutputStream) => Unit) =
       new ResponseStreamer {
         def stream(os: OutputStream) {
           val out = new ServerOutputStream(os)
 
-          DebugTls.using(httpRequest, params) { 
-            renderFunc(out) 
+          DebugTls.using(httpRequest, params) {
+            uriExtracter.module.surroundResponseStreamer(out, renderFunc(out))
           }
 
           out.flush
@@ -101,7 +103,6 @@ trait Server extends Logging {
 
     def invalidRequest = Errors.fatal("Invalid request _." << originalPath)
 
-    val uriExtracter = new UriExtracter(originalPath) 
     val interactionDefinition = uriExtracter.interactionDefinition
     val inputCookies = httpRequest.cookies
     val sslSessionId = retrieveSslSessionId(httpRequest)

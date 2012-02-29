@@ -21,6 +21,8 @@ class Module[L <: IdentityTrustLevel](val defaultIdentityTrustLevel: L) {
   implicit val yidentityTrustLevelEvidence5 = IdentityTrustLevelEvidence(DualStronglyAuthenticated)
 
   def surroundServerCall[A](ic: InteractionContext[_], call: => A) = call
+  
+  def surroundResponseStreamer(sos: ServerOutputStream, streamer: => Unit): Unit = streamer
 
 
   // Nécéssaire ???
