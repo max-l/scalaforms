@@ -9,3 +9,15 @@ msgstr "Project-Id-Version: com.strong_links.scalaforms.templates\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1"
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\target\scala-2.9.1\src_managed\main\com\strong_links\scalaforms\templates\misc\poutine.scala:55
+msgid "Hello my friend!!!"
+msgstr "Bonjour mon ami\u00A0!!!"
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\target\scala-2.9.1\src_managed\main\com\strong_links\scalaforms\templates\user\login.scala:39
+msgid "Password:"
+msgstr "Mot de passe\u00A0:"
+
+#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\target\scala-2.9.1\src_managed\main\com\strong_links\scalaforms\templates\user\login.scala:33
+msgid "Username:"
+msgstr "Code d'utilisateur\u00A0:"

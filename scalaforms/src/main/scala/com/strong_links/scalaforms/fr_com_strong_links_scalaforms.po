@@ -16,7 +16,7 @@ msgstr ""
 
 #: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:51
 msgid "Database key"
-msgstr ""
+msgstr "Clé de la base de données"
 
 #: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:61
 msgid "End date/time"
@@ -28,7 +28,7 @@ msgstr ""
 
 #: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:46
 msgid "Failure"
-msgstr ""
+msgstr "Échec"
 
 #: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:20
 msgid "First name"
@@ -79,11 +79,11 @@ msgstr ""
 
 #: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:28
 msgid "Password"
-msgstr ""
+msgstr "Mot de passe"
 
 #: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:73
 msgid "Preferred language"
-msgstr ""
+msgstr "Langue préférée"
 
 #: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:32
 msgid "Stack dump"
@@ -95,7 +95,7 @@ msgstr ""
 
 #: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:65
 msgid "Status"
-msgstr ""
+msgstr "Statut"
 
 #: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:45
 msgid "Success"

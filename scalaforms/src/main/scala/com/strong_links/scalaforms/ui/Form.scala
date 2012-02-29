@@ -29,12 +29,12 @@ class Form(val formFieldSets: FormFieldSet*) extends DisplayAttributes[Form] wit
   def defaultRenderer(oc: OutputContext) {
     _label match {
       case None =>
-        forms.formStart(oc)
+        forms.formStart.emit(oc)
       case Some(label) =>
-        forms.formStartWithLabel(label)(oc)
+        forms.formStartWithLabel(label).emit(oc)
     }
     formFieldSets.foreach(_.render(oc))
-    forms.formEnd(oc)
+    forms.formEnd.emit(oc)
   }
 
   override def render(oc: OutputContext) {

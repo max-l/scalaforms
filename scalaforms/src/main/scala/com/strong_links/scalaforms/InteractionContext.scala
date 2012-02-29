@@ -12,11 +12,6 @@ import java.io.PrintWriter
 import javax.servlet.http.HttpSession
 import scala.collection.mutable.ArrayBuffer
 
-trait OutputContext {
-  val i18nLocale: I18nLocale
-  val out: ServerOutputStream
-  def authId: String
-}
 
 class InteractionContext[+L <: IdentityTrustLevel](
     val identityTrustLevel: L,

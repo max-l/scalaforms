@@ -4,20 +4,22 @@ import com.strong_links.core._
 
 import java.lang.reflect.Method
 
-
 case class Uri(val uri: String) {
-  def format(implicit oc: OutputContext) = UriUtil.format(uri, oc.authId)
+  def format(implicit oc: OutputContext) = UriUtil.format(uri)
   override def toString = uri
 }
 
 
 class StaticUri(packageName: String, path: String) extends Uri(StaticResourceNode.prefix + packageName) {
-  override def format(implicit oc: OutputContext) = UriUtil.format(uri, oc.authId)
+  override def format(implicit oc: OutputContext) = UriUtil.format(uri)
 }
+
 
 object UriUtil {
 
-  def format(uri: String, authId: String) = uri
+
+  def format(uri: String) = uri
+
 
   //def apply(u: String) = new Uri(u)
   
@@ -40,7 +42,6 @@ object UriUtil {
     args.foreach(a => { b += '/'; b.append(a) })
     new Uri(b.toString)
   }
-
 }
 
 object UriExtracter {
@@ -108,8 +109,9 @@ class UriExtracter(val uri: String) {
     method.invoke(module, args: _*).asInstanceOf[InteractionDefinition[IdentityTrustLevel,Interaction]]
 
   def fqn = method.getDeclaringClass.getCanonicalName + "." + method.getName
+  
+  def toUri = UriUtil(method, args)
 }
-
 
 
 //TODO : verify that a module class exists with it's companion object that extends UriReferable...
