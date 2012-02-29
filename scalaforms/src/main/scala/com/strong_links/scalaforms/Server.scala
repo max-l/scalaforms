@@ -37,7 +37,10 @@ trait Server extends Logging {
 
   def serverSecretKey = "huhuhs439875c3p4k05-02598vk9430tv9i34ti40-ti04it".getBytes("UTF-8")
 
-  def applicationRootPath = "/int"
+  /**
+   * This is used as the 'path' for cookies emited by this server instance
+   */
+  def applicationRootPath = intWebroot
 
   private val applicationCookiePath = applicationRootPath + "/" 
 
