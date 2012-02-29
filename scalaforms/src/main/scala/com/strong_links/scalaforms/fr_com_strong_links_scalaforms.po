@@ -38,17 +38,6 @@ msgstr ""
 msgid "Fully qualified name"
 msgstr ""
 
-#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\SystemInteractions.scala:30
-msgid "Hello world"
-msgstr ""
-
-#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\SystemInteractions.scala:13
-#: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\SystemInteractions.scala:14
-msgid "Hello world!"
-msgid_plural "Hello world!"
-msgstr[0] ""
-msgstr[1] ""
-
 #: C:\Users\Jacques\_sandbox_01\git-projects\scalaforms\scalaforms\src\main\scala\com\strong_links\scalaforms\domains\Domains.scala:77
 msgid "Http session id"
 msgstr ""

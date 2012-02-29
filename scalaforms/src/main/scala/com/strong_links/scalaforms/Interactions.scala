@@ -28,7 +28,7 @@ class InteractionsEnabler[A <: Interactions](implicit manifest: Manifest[A]) {
 
   def uriFor(f: A => InteractionDefinition): Uri = {
     val c = manifest.erasure
-    val p = Cache.map.put(c) { c =>
+    val p = Cache.map.put(c) {
       Tweaks.makeInterceptor(c, (_, m, args) => {
         uriOnTL.set(Uri(m, args)); null
       })

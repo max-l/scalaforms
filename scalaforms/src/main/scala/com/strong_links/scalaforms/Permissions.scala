@@ -96,11 +96,12 @@ object GeneralPermissions extends dumpable {
 object Permission {
 
   private[scalaforms] def makeClassPermission(c: InteractionsEnabler[_]): Permission = {
-    ClassPermissions.m.put(c) { c => new ClassPermission(c) }
+    ClassPermissions.m.put(c) { new ClassPermission(c) }
   }
 
   private[scalaforms] def makeMethodPermission(f: AnyRef): Permission = {
-    MethodPermissions.m.put(Tweaks.getInvokedMethod(f.getClass)) { new MethodPermission(_) }
+    val im = Tweaks.getInvokedMethod(f.getClass)
+    MethodPermissions.m.put(im) { new MethodPermission(im) }
   }
 }
 
@@ -162,7 +163,7 @@ trait Role extends dumpable with FullyQualifiedName {
   override def equals(o: Any) =
     o match {
       case r: Role => r.fqn == fqn
-      case _ => false
+      case _       => false
     }
 }
 
