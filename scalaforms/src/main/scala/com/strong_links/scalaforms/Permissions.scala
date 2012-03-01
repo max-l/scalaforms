@@ -97,11 +97,12 @@ object GeneralPermissions extends dumpable {
 object Permission {
 
   private[scalaforms] def makeClassPermission(c: Module[_]): Permission = {
-    ClassPermissions.m.put(c) { c => new ClassPermission(c) }
+    ClassPermissions.m.put(c) {new ClassPermission(c) }
   }
 
   private[scalaforms] def makeMethodPermission(f: AnyRef): Permission = {
-    MethodPermissions.m.put(Tweaks.getInvokedMethod(f.getClass)) { new MethodPermission(_) }
+    val m = Tweaks.getInvokedMethod(f.getClass)
+    MethodPermissions.m.put(m) { new MethodPermission(m) }
   }
 }
 

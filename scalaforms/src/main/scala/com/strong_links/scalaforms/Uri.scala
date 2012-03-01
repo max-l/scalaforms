@@ -129,11 +129,11 @@ trait UriReferable[M] {
     assert((objParentClass.getName +"$") == objClass.getName)
     
     val p = 
-      Cache.map.put(objParentClass) { c =>
-      Tweaks.makeInterceptor(objParentClass, (_, m, args) => {
-        uriOnTL.set(UriUtil(m, args)); null
-      })
-    }
+      Cache.map.put(objParentClass) {
+        Tweaks.makeInterceptor(objParentClass, (_, m, args) => {
+          uriOnTL.set(UriUtil(m, args)); null
+        })
+      }
     f(p.asInstanceOf[M])
     uriOnTL.get
   }
