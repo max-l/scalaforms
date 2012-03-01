@@ -20,18 +20,19 @@ trait Permission {
   override def toString = description
 }
 
-private[scalaforms] class ClassPermission(val interactionsEnabler: InteractionsEnabler[_]) extends Permission {
+private[scalaforms] class ClassPermission(val interactionsEnabler: Module[_]) extends Permission {
 
-  val name = interactionsEnabler.clasz.getCanonicalName
+  val clasz = interactionsEnabler.getClass
+  val name = clasz.getCanonicalName
 
-  lazy val includedMethods = Tweaks.getPublicMethodsWithReturnType(interactionsEnabler.clasz, classOf[Interaction])
+  lazy val includedMethods = Tweaks.getPublicMethodsWithReturnType(clasz, classOf[Interaction])
 
   def description = "Execute all interaction methods in _" <<< name
 }
 
 object ClassPermissions extends dumpable {
 
-  private[scalaforms] val m = new IdentityMap[InteractionsEnabler[_], ClassPermission]
+  private[scalaforms] val m = new IdentityMap[Module[_], ClassPermission]
 
   def dump(cs: LeveledCharStream) {
     cs.println("Class permissions loaded")
@@ -95,18 +96,19 @@ object GeneralPermissions extends dumpable {
 
 object Permission {
 
-  private[scalaforms] def makeClassPermission(c: InteractionsEnabler[_]): Permission = {
-    ClassPermissions.m.put(c) { new ClassPermission(c) }
+
+  private[scalaforms] def makeClassPermission(c: Module[_]): Permission = {
+    ClassPermissions.m.put(c) {new ClassPermission(c) }
   }
 
   private[scalaforms] def makeMethodPermission(f: AnyRef): Permission = {
-    val im = Tweaks.getInvokedMethod(f.getClass)
-    MethodPermissions.m.put(im) { new MethodPermission(im) }
+    val m = Tweaks.getInvokedMethod(f.getClass)
+    MethodPermissions.m.put(m) { new MethodPermission(m) }
   }
 }
 
 trait Role extends dumpable with FullyQualifiedName {
-  def name: I18n
+  def name =  Errors.fatal("implement me !") //: I18n
   def permissions: Seq[Permission]
   lazy val (classPermissions, methodPermissions, generalPermissions) = {
     val m = new UniqueIdentityMap[Permission]
@@ -117,7 +119,7 @@ trait Role extends dumpable with FullyQualifiedName {
       Util.filterOn[GeneralPermission](uniquePermissions))
   }
 
-  def allows(ie: InteractionsEnabler[_]) =
+  def allows(ie: Module[_]) =
     classPermissions.exists(cp => {
       cp.interactionsEnabler eq ie
     })
@@ -169,7 +171,7 @@ trait Role extends dumpable with FullyQualifiedName {
 
 class RoleSet(val roles: Seq[Role]) extends dumpable {
 
-  private[scalaforms] def allows(ie: InteractionsEnabler[_]) = roles.exists(_.allows(ie))
+  private[scalaforms] def allows(ie: Module[_]) = roles.exists(_.allows(ie))
 
   private[scalaforms] def allows(method: Method) = roles.exists(_.allows(method))
 
@@ -178,13 +180,12 @@ class RoleSet(val roles: Seq[Role]) extends dumpable {
   def dump(cs: LeveledCharStream) {
     cs.println("Role set")
     cs.increaseLevel
-    roles.sortWith(_.name.key < _.name.key).foreach(_.dump(cs))
+    //roles.sortWith(_.name.key < _.name.key).foreach(_.dump(cs))
     cs.decreaseLevel
   }
 
-  override def toString = {
-    roles.sortWith(_.name.key < _.name.key).mkString(", ")
-  }
+  //override def toString = roles.sortBy(_.name.key).mkString(", ")
+  
 }
 
 object RoleSet {

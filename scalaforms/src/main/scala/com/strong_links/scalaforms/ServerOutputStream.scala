@@ -14,6 +14,8 @@ class ServerOutputStream(os: OutputStream) extends WriteableOutputStream {
   private var bytesWritten = 0L
   private var currentFlushStep = flushSteps
 
+  def <<(s: String) = write(s)
+  
   def write(s: String) {
     val b = s.getBytes("UTF-8")
     try {

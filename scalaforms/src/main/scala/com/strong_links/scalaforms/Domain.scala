@@ -103,6 +103,18 @@ trait IntDomain extends Domain[Int] {
     Integer.parseInt(s)
 }
 
+trait BooleanDomain extends Domain[Boolean] {
+
+  val defaultValue = false
+
+  def decode(s: String) = s match {
+    case "true" => true
+    case "false" => false
+    case _ => Errors.fatal("Invalid boolean _." <<< s)
+  }
+ 
+}
+
 trait LongDomain extends Domain[Long] {
 
   val defaultValue = 0L

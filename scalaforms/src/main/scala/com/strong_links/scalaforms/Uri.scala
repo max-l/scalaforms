@@ -4,20 +4,29 @@ import com.strong_links.core._
 
 import java.lang.reflect.Method
 
-class Uri(val uri: String) {
+case class Uri(val uri: String) {
+  def format(implicit oc: OutputContext) = UriUtil.format(uri)
   override def toString = uri
 }
 
+
 class StaticUri(packageName: String, path: String) extends Uri(StaticResourceNode.prefix + packageName) {
-  override def toString = Uri.format(uri)
+  override def format(implicit oc: OutputContext) = UriUtil.format(uri)
 }
 
-object Uri {
+
+object UriUtil {
+
 
   def format(uri: String) = uri
 
+
+  //def apply(u: String) = new Uri(u)
+  
   def apply(method: Method, args: Array[Object]): Uri = {
 
+    val intWebroot = "/int"
+    
     val className = {
       val cn = method.getDeclaringClass.getCanonicalName;
       if (cn.endsWith("$")) cn.substring(0, cn.length - 1) else cn
@@ -71,11 +80,11 @@ class UriExtracter(val uri: String) {
       Class.forName(fullClassName)
     } catch {
       case e: ClassNotFoundException =>
-        Errors.fatal("Interactions _ not callable from http, make sure it is extended by an InteractionsEnabler[__] object.\n_"
+        Errors.fatal("Module _ not callable from http.\n_"
           << (className, e.getMessage))
       case t => Errors.fatal(t, "Unexpected exception loading class _." << fullClassName)
     }
-    val interactions = c.getField("MODULE$").get(null).asInstanceOf[Interactions]
+    val module = c.getField("MODULE$").get(null).asInstanceOf[Module[IdentityTrustLevel]]
     val matchingMethodList = c.getMethods.filter(_.getName == methodName)
     matchingMethodList.length match {
       case 0 => Errors.fatal("Method _ not found in _." << (methodName, className))
@@ -91,17 +100,46 @@ class UriExtracter(val uri: String) {
     val argTypesWithValues: Seq[(Class[_], String)] = argTypes.zip(args).toSeq
     val argsArrayForInvokation =
       argTypesWithValues.map((t: Tuple2[Class[_], String]) => createTypedArgFromString(t._1, t._2, uri))
-    (webRootPath, method, interactions, argsArrayForInvokation.toArray.asInstanceOf[Array[AnyRef]], args)
+    (webRootPath, method, module, argsArrayForInvokation.toArray.asInstanceOf[Array[AnyRef]], args)
   }
 
-  val (webRootPath, method, interactions, args, rawStringArgs) = extractInformation
+  val (webRootPath, method, module, args, rawStringArgs) = extractInformation
 
-  val interactionDefinition = method.invoke(interactions, args: _*).asInstanceOf[InteractionDefinition]
-
-  def invokeInteraction(ic: InteractionContext) = interactionDefinition.f(ic)
-
-  def toUri = Uri(method, args)
+  val interactionDefinition =
+    method.invoke(module, args: _*).asInstanceOf[InteractionDefinition[IdentityTrustLevel,Interaction]]
 
   def fqn = method.getDeclaringClass.getCanonicalName + "." + method.getName
+  
+  def toUri = UriUtil(method, args)
+}
+
+
+//TODO : verify that a module class exists with it's companion object that extends UriReferable...
+trait UriReferable[M] {
+  
+  private val uriOnTL = new ThreadLocal[Uri]
+
+  private object Cache {val map = new IdentityMap[Class[_], Object]}
+
+  def uriFor(f: M => InteractionDefinition[_,_]): Uri = {
+    val objClass = this.getClass
+    
+    val objParentClass = objClass.getSuperclass
+    
+    assert((objParentClass.getName +"$") == objClass.getName)
+    
+    val p = 
+      Cache.map.put(objParentClass) {
+        Tweaks.makeInterceptor(objParentClass, (_, m, args) => {
+          uriOnTL.set(UriUtil(m, args)); null
+        })
+      }
+    f(p.asInstanceOf[M])
+    uriOnTL.get
+  }
+
+  def uriFor(f: (M => InteractionDefinition[_,_]), ic: InteractionContext[_]): Uri = {
+    new Uri(uriFor(f).uri)
+  }
 }
 
