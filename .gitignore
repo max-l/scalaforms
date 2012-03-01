@@ -6,6 +6,7 @@ project/plugins/target/*
 project/plugins/project/*
 /*/target/*
 project/project/*
+bin
 
 # Scalaforms ignores :
 

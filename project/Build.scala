@@ -9,6 +9,7 @@ object Buildz extends Build {
   val bcel = "org.apache.bcel" % "bcel" % "5.2"  
   val squeryl = "org.squeryl" %% "squeryl" % "0.9.5-extended-types-poc2"
   val versionOfScala = "2.9.1"
+  val unfilteredVersion = "0.6.0"
 				   
   def buildSettings = Defaults.defaultSettings ++ Seq(
     organization := "com.strong-links",
@@ -37,9 +38,9 @@ object Buildz extends Build {
 	  libraryDependencies  ++=  Seq(        
 	      core,
 	      bcel,
-        "net.databinder" %% "unfiltered-filter" % "0.5.3",
-        "net.databinder" %% "unfiltered-jetty" % "0.5.3",
-        "net.databinder" %% "unfiltered-json" % "0.5.3",
+        "net.databinder" %% "unfiltered-filter" % unfilteredVersion,
+        "net.databinder" %% "unfiltered-jetty" % unfilteredVersion,
+        "net.databinder" %% "unfiltered-json" % unfilteredVersion,
         "org.slf4j" % "slf4j-api" % "1.6.1",
         "com.h2database" % "h2" % "1.3.160",
         "org.cometd.java" % "cometd-java-server" % "2.3.1",

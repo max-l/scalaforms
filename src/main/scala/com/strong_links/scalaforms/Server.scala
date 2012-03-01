@@ -11,6 +11,11 @@ import java.sql.Driver
 import org.slf4j.LoggerFactory
 import unfiltered.{Cookie => UCookie}
 
+object Server {
+  def cookiesAsSeq(m: Map[String,Option[UCookie]]) = 
+    m.values.filterNot(_ == None).map(_.get).toSeq  
+}
+
 trait Server extends Logging {
 
   def activeRoles: Seq[Role]
@@ -61,27 +66,29 @@ trait Server extends Logging {
 
     def intent:  PartialFunction[HttpRequest[HttpServletRequest],ResponseFunction[HttpServletResponse]] = {
       case httpRequest: HttpRequest[_] =>
-        val (isPost, originalPath, params) = httpRequest match {
-          case GET(Path(p) & Params(params))  => (false, p, params)
-          case POST(Path(p) & Params(params)) => (true, p, params)
+        val (isPost, originalPath, params, cookieMap) = httpRequest match {
+          case GET(Path(p) & Params(params) & Cookies(cookies))  => (false, p, params, cookies)
+          case POST(Path(p) & Params(params) & Cookies(cookies)) => (true, p, params, cookies)
           case _                              => Errors.fatal("Unsupported request.")
         }
 
       logInfo("Intercepting URI _." << originalPath)
+      
+      val cookies = Server.cookiesAsSeq(cookieMap)
 
       if(isDev && originalPath.endsWith("/ClearCookies"))
-        ResponseCookies(SessionCookieManager.resetAllCookies(applicationCookiePath) :_*) ~> Redirect("/int/DumpCookies")
+        SetCookies(SessionCookieManager.resetAllCookies(applicationCookiePath) :_*) ~> Redirect("/int/DumpCookies")
       else if(isDev && originalPath.endsWith("/DumpCookies")) 
-        ResponseString(dumpCookies(httpRequest.cookies))
+        ResponseString(dumpCookies(cookies))
       else
-        processUri(isPost, originalPath, params, httpRequest)
+        processUri(isPost, originalPath, params, cookies, httpRequest)
     }
   }
 
   private def dumpCookies(c: Seq[UCookie]) =
     "Cookies : " + c.mkString("[\n","\n","\n]")
 
-  def processUri(isPost: Boolean, originalPath: String, params: Map[String,Seq[String]], httpRequest: HttpRequest[javax.servlet.http.HttpServletRequest]) = {
+  def processUri(isPost: Boolean, originalPath: String, params: Map[String,Seq[String]], inputCookies: Seq[UCookie], httpRequest: HttpRequest[javax.servlet.http.HttpServletRequest]) = {
 
     val uriExtracter = new UriExtracter(originalPath)
     
@@ -90,7 +97,7 @@ trait Server extends Logging {
         def stream(os: OutputStream) {
           val out = new ServerOutputStream(os)
 
-          DebugTls.using(httpRequest, params) {
+          DebugTls.using(httpRequest, params, inputCookies) {
             uriExtracter.module.surroundResponseStreamer(out, renderFunc(out))
           }
 
@@ -101,13 +108,12 @@ trait Server extends Logging {
 
     def prependCookies[R](r: ResponseFunction[R], cookies: Seq[UCookie]) = {
       logDebug("Outgoing " + dumpCookies(cookies))
-      ResponseCookies(cookies :_*) ~> r
+      SetCookies(cookies :_*) ~> r
     }
 
     def invalidRequest = Errors.fatal("Invalid request _." << originalPath)
 
     val interactionDefinition = uriExtracter.interactionDefinition
-    val inputCookies = httpRequest.cookies
     val sslSessionId = retrieveSslSessionId(httpRequest)
     val isSecureConnection = sslSessionId.isDefined
     val cm = new SessionCookieManager(
@@ -217,7 +223,7 @@ trait Server extends Logging {
 
 
 
-object DebugTls extends ThreadLocalStack[(HttpRequest[HttpServletRequest],Map[String,Seq[String]])] {
+object DebugTls extends ThreadLocalStack[(HttpRequest[HttpServletRequest],Map[String,Seq[String]], Seq[UCookie])] {
 
   private def headers(req: HttpRequest[HttpServletRequest]) = {
     
@@ -231,7 +237,7 @@ object DebugTls extends ThreadLocalStack[(HttpRequest[HttpServletRequest],Map[St
   }
   
   def dumpAll(out: ServerOutputStream) = map { x =>
-    val (req, args) = x
+    val (req, args, cookies) = x
     out <<("Http Method: _\n" <<  req.underlying.getMethod())
     out << "Headers : \n"
 
@@ -240,7 +246,7 @@ object DebugTls extends ThreadLocalStack[(HttpRequest[HttpServletRequest],Map[St
     }
 
     out <<("URL: _\n" <<  req.underlying.getRequestURL())
-    out << req.cookies.sortBy(_.name).map( c => "_ -> _" <<< (c.name, c.value)).mkString("Cookies : \n  ", "\n  ", "")
+    out << cookies.sortBy(_.name).map( c => "_ -> _" <<< (c.name, c.value)).mkString("Cookies : \n  ", "\n  ", "")
 
     if(! args.isEmpty)
       out << "\nParams :"
