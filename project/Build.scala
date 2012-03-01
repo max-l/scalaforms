@@ -26,7 +26,7 @@ object Buildz extends Build {
   
   lazy val scalaforms = Project(
     id = "scalaforms",
-    base = file("scalaforms"),    
+    base = file("."),    
     settings = buildSettings ++ Epoxy.init ++ I18nGen.init ++ Seq(
      com.strong_links.i18ngen.I18nGen.i18nConfigs := Seq(
          new I18nConfig("com.strong_links.scalaforms", en_US, Seq(fr), Seq(fr_CA, fr_FR), Map(en -> en_US)),
