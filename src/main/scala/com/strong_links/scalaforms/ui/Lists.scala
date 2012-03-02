@@ -2,7 +2,6 @@ package com.strong_links.scalaforms.ui
 
 import com.strong_links.core._
 import com.strong_links.scalaforms._
-import com.strong_links.scalaforms.schema._
 
 class GridDef1[A1](f: A1 => Seq[FormField], c1: Class[_]) {
   def render(i: Iterable[A1]) = 

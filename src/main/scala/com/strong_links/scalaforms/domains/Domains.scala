@@ -48,7 +48,7 @@ object EmailAddressDomain extends StringDomain {
   override val label = i18n("email")
 }
 
-object PasswordDomain extends StringDomain {
+object ClearTextPasswordDomain extends StringDomain {
   val label = i18n("Password")
 }
 

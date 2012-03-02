@@ -30,6 +30,9 @@ trait Domain[A] {
 
   def mandatory = false
 
+  // belongs in Form DSL ?
+  def requiresConfirmation = false
+
   def editable = true
 
   // Operators  

@@ -1,7 +1,6 @@
 package com.strong_links.scalaforms
 
 import com.strong_links.core._
-import com.strong_links.scalaforms.schema._
 import com.strong_links.scalaforms.squeryl.SquerylFacade._
 import javax.servlet.http.HttpSession
 import unfiltered.request._
