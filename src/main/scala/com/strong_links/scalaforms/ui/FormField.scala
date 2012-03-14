@@ -6,16 +6,22 @@ import com.strong_links.scalaforms._
 import com.strong_links.scalaforms.i18nCatalog._
 import com.strong_links.scalaforms.templates.standard.forms
 
-class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] with FieldRendering {
+class FormField[T](val baseField: BaseField[T]) extends DisplayAttributes[FormField[T]]
+  with Used[FormField[T]]
+  with Hidden[FormField[T]]
+  with Mandatory[FormField[T]]
+  with ReadOnly[FormField[T]]
+  with FieldRendering {
+
+  private[ui] def self = this
+
+  private[ui] def ignoredForRulesComputation = !isUsed || isHidden
 
   // Get the default attributes from the associated domain and their getters.
-  private[ui] var _mandatory = field.domain.mandatory
-  private[ui] var _editable = field.domain.editable
-  private[ui] var _choices = field.domain.choices
-  _label = Some(field.domain.label)
+  private[ui] var _choices = baseField.domain.choices
+  _label = Some(baseField.domain.label)
 
   // Other form field attributes.
-  private[ui] var _solidaryFormField: Option[FormField] = None
   private[ui] var _tabOrder = -1
 
   // Values used while handling the form itself.
@@ -30,67 +36,13 @@ class FormField(val field: BaseField[_]) extends DisplayAttributes[FormField] wi
     Errors.fatal(Seq(toString: LoggingParameter) ++ params.toSeq: _*)
   }
 
-  override def toString = {
-    _label match {
-      case None =>
-        basicToString
-      case Some(label) =>
-        (basicToString + " _") << label
-    }
-  }
-
-  private def basicToString = {
-    "Form field" + (if (_tabOrder == -1) "" else " " + _tabOrder.toString)
-  }
-
-  // Business-type functions.
-
-  def editable = {
-    if (!field.domain.editable)
-      error("Field is always not editable.")
-    _editable = true
-    this
-  }
-
-  def notEditable = {
-    _editable = false
-    this
-  }
-
-  def editableIf(b: Boolean) = {
-    if (b) editable else notEditable
-  }
-
-  def mandatory = {
-    _mandatory = false
-    this
-  }
-
-  def notMandatory = {
-    if (field.domain.mandatory)
-      error("Field is always mandatory.")
-    _editable = true
-    this
-  }
-
-  def mandatoryIf(b: Boolean) = {
-    if (b) mandatory else notMandatory
-  }
-
-  def solidaryWith(formField: FormField) {
-    this._solidaryFormField match {
-      case Some(sf) => error("Already solidary with _." << sf)
-      case _        =>
-    }
-    _solidaryFormField = Some(formField)
-  }
-
-  def notSolidary {
-    this._solidaryFormField match {
-      case None => error("Not solidary with a form field.")
-      case _    =>
-    }
-    _solidaryFormField = None
+  override def toString = (_label, if (_tabOrder == -1) "" else (_tabOrder + " ")) match {
+    case (None, bts) =>
+      bts
+    case (Some(label), bts) if bts.length > 0 =>
+      bts + " " + label
+    case (Some(label), bts) =>
+      bts + label
   }
 
   protected def defaultRenderer(oc: OutputContext) {

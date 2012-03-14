@@ -48,11 +48,4 @@ package object scalaforms {
   implicit def interactionFunction2Permission(f: Function20[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, IDEF]) = Permission.makeMethodPermission(f)
   implicit def interactionFunction2Permission(f: Function21[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, IDEF]) = Permission.makeMethodPermission(f)
   implicit def interactionFunction2Permission(f: Function22[_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, IDEF]) = Permission.makeMethodPermission(f)
-
-
-  object fieldTransformer extends ThreadLocalStack[FieldTransformer]
-
-  object identityFieldTransformer extends FieldTransformer {
-    def transform(field: BaseField[_]): FieldRendering = field
-  }
 }

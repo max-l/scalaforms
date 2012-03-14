@@ -4,7 +4,7 @@ import com.strong_links.core._
 import com.strong_links.scalaforms._
 import com.strong_links.scalaforms.templates.standard.forms
 
-class FormFieldSet(val formFields: FormField*) extends DisplayAttributes[FormFieldSet] {
+class FormFieldSet(val formFields: FormField[_]*) extends DisplayAttributes[FormFieldSet] {
 
   override def toString = {
     "Field set _" << _label
@@ -25,7 +25,7 @@ class FormFieldSet(val formFields: FormField*) extends DisplayAttributes[FormFie
 }
 
 object FormFieldSet {
-  def apply(formFields: FormField*): FormFieldSet = {
+  def apply(formFields: FormField[_]*): FormFieldSet = {
     new FormFieldSet(formFields: _*)
   }
 }
